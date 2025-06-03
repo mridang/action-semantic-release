@@ -58,6 +58,7 @@ function getWaitForChecks(): boolean {
 }
 
 function isPushOrTag(): boolean {
+  console.log(context.eventName);
   if (context.eventName === 'push') {
     if (
       context.ref.startsWith('refs/heads/') ||
