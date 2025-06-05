@@ -12,7 +12,10 @@ export default {
     inlineDynamicImports: true,
   },
   plugins: [
-    resolve({ preferBuiltins: true }),
+    resolve({
+      exportConditions: ['node', 'default'],   // 1st match wins → ./node.js
+      preferBuiltins: true,
+    }),
     commonjs(),
     json(),
     esbuild({
@@ -20,5 +23,5 @@ export default {
       tsconfig: './tsconfig.json',
     }),
   ],
-  external: [], // Add external dependencies here if needed
+  external: []
 };
