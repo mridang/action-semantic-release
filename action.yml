@@ -5,9 +5,8 @@ description: |
     Automatically installs plugins for declarative configs and waits for
     all required GitHub checks to pass before publishing.
 
-author: your-org
+author: mridang
 branding:
-    icon: upload-cloud
     color: blue
 
 inputs:
@@ -33,4 +32,4 @@ inputs:
 
 runs:
     using: node20
-    main: dist/index.cjs
+    main: dist/main.cjs

@@ -49,7 +49,7 @@ it.each(matrix)(
           JSON.stringify({
             branches: ['main'],
             plugins: ['@semantic-release/commit-analyzer'],
-            repositoryUrl: 'ddditadel.git',
+            repositoryUrl: 'https://github.com/github/docs',
           }),
         );
 
