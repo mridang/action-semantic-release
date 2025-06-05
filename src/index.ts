@@ -16,7 +16,7 @@ import { loaders } from './loaders.js';
 import { Context } from '@actions/github/lib/context.js';
 
 const CHECK_TIMEOUT_MS = 10 * 60 * 1000;
-const CHECK_INTERVAL_MS = 10 * 1000;
+const CHECK_INTERVAL_MS = 2 * 1000;
 
 function getGithubToken(): string {
   const token = getInput('github-token', { required: true }).trim();
@@ -65,31 +65,50 @@ async function waitForAllChecks(ghCtx: Context, token: string): Promise<void> {
   const octokit = getOctokit(token);
   const { owner, repo } = ghCtx.repo;
   const ref = ghCtx.sha;
+  const currentJobName = ghCtx.job;
   const deadline = Date.now() + CHECK_TIMEOUT_MS;
+
+  info(`Starting check run monitoring for ref: ${ref}`);
+  info(`Will ignore self (this job): '${currentJobName}'`);
 
   while (Date.now() < deadline) {
     const { data } = await octokit.rest.checks.listForRef({ owner, repo, ref });
-    const runs = data.check_runs;
 
-    if (runs.length > 0) {
-      if (runs.every((run) => run.status === 'completed')) {
-        if (runs.every((run) => run.conclusion === 'success')) {
-          info('All required checks have passed.');
-          return;
-        } else {
-          throw new Error('One or more required checks failed.');
-        }
+    const otherRuns = data.check_runs.filter(
+      (run) => run.name !== currentJobName,
+    );
+
+    if (otherRuns.length === 0) {
+      info('No other check runs found. Proceeding.');
+      return;
+    }
+
+    const pendingChecks = otherRuns.filter((run) => run.status !== 'completed');
+
+    if (pendingChecks.length === 0) {
+      const allSuccessful = otherRuns.every(
+        (run) => run.conclusion === 'success',
+      );
+      if (allSuccessful) {
+        info('✅ All other check runs have completed successfully.');
+        return;
       } else {
-        debug('Waiting for checks to complete...');
+        const failedCheck = otherRuns.find(
+          (run) => run.conclusion !== 'success',
+        );
+        throw new Error(
+          `❌ Check '${failedCheck?.name}' failed with conclusion: ${failedCheck?.conclusion}.`,
+        );
       }
     } else {
-      debug('No checks found. Waiting...');
+      const pendingCheckNames = pendingChecks.map((run) => run.name).join(', ');
+      debug(`⏳ Waiting for checks to complete: ${pendingCheckNames}`);
     }
 
     await new Promise((resolve) => setTimeout(resolve, CHECK_INTERVAL_MS));
   }
 
-  throw new Error('Timeout: Not all checks completed in time.');
+  throw new Error('Timeout: Not all other check runs completed in time.');
 }
 
 export async function run(
