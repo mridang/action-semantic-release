@@ -49,17 +49,27 @@ async function runAction(
 }
 
 const matrix = [
-  { eventName: 'push', ref: 'refs/heads/main', wait: 'true', shouldRun: true },
+  {
+    eventName: 'push',
+    ref: 'refs/heads/master',
+    wait: 'true',
+    shouldRun: true,
+  },
   {
     eventName: 'push',
     ref: 'refs/tags/v1.0.0',
     wait: 'false',
     shouldRun: true,
   },
-  { eventName: 'push', ref: 'refs/notes/commits', wait: '', shouldRun: false },
+  {
+    eventName: 'push',
+    ref: 'refs/notes/commits',
+    wait: '???',
+    shouldRun: false,
+  },
   {
     eventName: 'pull_request',
-    ref: 'refs/heads/main',
+    ref: 'refs/heads/master',
     wait: 'true',
     shouldRun: false,
   },
@@ -80,9 +90,10 @@ test.each(matrix)(
           writeFileSync(
             join(tmp, '.releaserc.json'),
             JSON.stringify({
-              branches: ['main'],
+              branches: ['master'],
               plugins: ['@semantic-release/commit-analyzer'],
               repositoryUrl: remoteUrl,
+              dryRun: true,
             }),
           );
 

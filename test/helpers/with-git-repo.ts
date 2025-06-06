@@ -49,7 +49,7 @@ export function withGitRepo(
     const remoteGit: SimpleGit = simpleGit(remotePath);
     await remoteGit.init(true);
 
-    await remoteGit.raw('symbolic-ref', 'HEAD', 'refs/heads/main');
+    await remoteGit.raw('symbolic-ref', 'HEAD', 'refs/heads/master');
 
     const daemon: ChildProcess = spawn('git', [
       'daemon',
@@ -72,7 +72,7 @@ export function withGitRepo(
       await git.clone(remoteUrl, localPath);
 
       await git.cwd(localPath);
-      await git.checkout(['-b', 'main']);
+      await git.checkout(['-b', 'master']);
 
       await git.addConfig('user.name', 'Test User');
       await git.addConfig('user.email', 'test@example.com');
@@ -81,7 +81,7 @@ export function withGitRepo(
         await git.commit(message, [], { '--allow-empty': null });
       }
 
-      await git.push(['-u', 'origin', 'main']);
+      await git.push(['-u', 'origin', 'master']);
 
       await fn({ tmp: localPath, remoteUrl });
     } finally {
