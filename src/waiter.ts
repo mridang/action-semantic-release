@@ -35,11 +35,8 @@ export default async function waitForAllChecks(
     const { data } = await octokit.rest.checks.listForRef({ owner, repo, ref });
     const allRuns = data.check_runs;
 
-    // --- YOUR CORRECTED LOGIC ---
-    // First, get a true picture of what we are actively waiting for.
     const pendingRuns = allRuns.filter((run) => run.status !== 'completed');
 
-    // Now, apply the heuristic ONLY to the list of pending checks.
     const selfIsPresentInPending = pendingRuns.some(
       (run) => run.name === selfIdentifier,
     );
@@ -52,11 +49,9 @@ export default async function waitForAllChecks(
       info(
         `Only one pending check remains: '${theOnlyPendingCheck.name}'. Assuming this is the current job and proceeding.`,
       );
-      return; // <-- This exits the waiter, solving the deadlock.
+      return;
     }
-    // --- END OF CORRECTED LOGIC ---
 
-    // The main filter still operates on all runs to correctly identify other checks.
     const otherRuns = allRuns.filter((run) => run.name !== selfIdentifier);
 
     if (otherRuns.length === 0) {
@@ -64,13 +59,11 @@ export default async function waitForAllChecks(
       return;
     }
 
-    // But the pending check logic now correctly uses the pre-filtered pending list.
     const pendingOtherRuns = otherRuns.filter(
       (run) => run.status !== 'completed',
     );
 
     if (pendingOtherRuns.length === 0) {
-      // Once nothing is pending, check the conclusions of all other runs.
       const allSuccessful = otherRuns.every(
         (run) =>
           run.conclusion === 'success' ||
