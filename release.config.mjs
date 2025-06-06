@@ -5,9 +5,15 @@ export default {
     '@semantic-release/commit-analyzer',
     '@semantic-release/release-notes-generator',
     [
+      '@semantic-release/exec',
+      {
+        prepareCmd: 'npm run build',
+      },
+    ],
+    [
       '@semantic-release/github',
       {
-        assets: [{ path: '*.tgz', label: 'Action' }],
+        assets: ['action.yml', 'dist/**'],
       },
     ],
     [
