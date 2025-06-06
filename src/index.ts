@@ -132,7 +132,7 @@ export async function run(
               cwd: workingDirectory,
               env: {
                 ...process.env,
-                GITHUB_TOKEN: ghCtx.repo,
+                GITHUB_TOKEN: githubToken,
               },
             },
           );
