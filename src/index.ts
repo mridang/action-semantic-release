@@ -160,9 +160,9 @@ export async function run(
     }
   } catch (err) {
     if (err instanceof Error) {
-      setFailed(err.message);
+      setFailed(err);
     } else {
-      setFailed('An unknown error occurred.');
+      setFailed(err as unknown as string);
     }
   }
 }

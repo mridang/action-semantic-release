@@ -60,13 +60,13 @@ const matrix = [
     wait: 'false',
     shouldRun: true,
   },
-  // { eventName: 'push', ref: 'refs/notes/commits', wait: '', shouldRun: false },
-  // {
-  //   eventName: 'pull_request',
-  //   ref: 'refs/heads/main',
-  //   wait: 'true',
-  //   shouldRun: false,
-  // },
+  { eventName: 'push', ref: 'refs/notes/commits', wait: '', shouldRun: false },
+  {
+    eventName: 'pull_request',
+    ref: 'refs/heads/main',
+    wait: 'true',
+    shouldRun: false,
+  },
 ];
 
 test.each(matrix)(

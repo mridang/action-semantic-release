@@ -1,11 +1,40 @@
 // file: test/helpers/with-git-repo.ts
 import { SimpleGit, simpleGit } from 'simple-git';
-import { spawn } from 'node:child_process';
+import { ChildProcess, spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 type GitRepoContext = { tmp: string; remoteUrl: string };
 
+/**
+ * A higher-order function for end-to-end testing of Git operations.
+ *
+ * This function orchestrates a complex test environment that simulates a
+ * real-world Git remote setup. It performs the following steps:
+ *
+ * 1.  Creates a bare Git repository to act as a remote 'origin'.
+ * 2.  Sets the bare repository's symbolic HEAD to 'refs/heads/main' to
+ * ensure it behaves correctly for remote operations like 'fetch'.
+ * 3.  Spawns a live `git daemon` process, creating a lightweight, local
+ * Git server on port 9418 to serve the bare repository.
+ * 4.  Clones the bare repository via the daemon to create a local
+ * working copy, simulating a developer's checkout.
+ * 5.  Populates the local repository with an initial history based on
+ * the provided commit messages.
+ * 6.  Pushes this history to the simulated remote daemon.
+ * 7.  Executes the provided test function within this fully-configured
+ * Git environment.
+ * 8.  Guarantees the cleanup of the spawned `git daemon` process,
+ * preventing orphaned processes after the test completes.
+ *
+ * @param commits An array of strings, where each string is used as the
+ * message for an initial empty commit.
+ * @param fn The asynchronous test function to execute. It receives a
+ * context object containing `tmp` (the path to the local working
+ * directory) and `remoteUrl` (the URL of the temporary Git daemon).
+ * @returns A new async function that, when called, performs the entire
+ * setup, execution, and cleanup process.
+ */
 export function withGitRepo(
   commits: string[],
   fn: (ctx: GitRepoContext) => Promise<void>,
@@ -18,18 +47,12 @@ export function withGitRepo(
     mkdirSync(remotePath);
     mkdirSync(localPath);
 
-    // 1. Initialize the bare remote repository.
     const remoteGit: SimpleGit = simpleGit(remotePath);
-    await remoteGit.init(true); // `true` for bare
+    await remoteGit.init(true);
 
-    // ===================================================================
-    // FIX: Set the symbolic reference for HEAD in the bare repository.
-    // This tells Git that 'main' is the default branch for this remote.
-    // It's necessary for remote commands like 'git fetch' to succeed.
     await remoteGit.raw('symbolic-ref', 'HEAD', 'refs/heads/main');
-    // ===================================================================
 
-    const daemon = spawn('git', [
+    const daemon: ChildProcess = spawn('git', [
       'daemon',
       `--base-path=${baseTmp}`,
       '--export-all',
@@ -46,7 +69,6 @@ export function withGitRepo(
     try {
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      // The rest of the logic remains the same.
       const git: SimpleGit = simpleGit();
       await git.clone(remoteUrl, localPath);
 
