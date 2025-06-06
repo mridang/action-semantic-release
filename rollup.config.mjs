@@ -3,7 +3,7 @@ import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import esbuild from 'rollup-plugin-esbuild';
-import { resolve as r, dirname } from 'node:path';
+import { dirname, resolve as r } from 'node:path';
 import { readFileSync } from 'node:fs';
 
 const badJson = r('node_modules/@pnpm/npm-conf/lib/tsconfig.make-out.json');
@@ -17,17 +17,12 @@ const inlinePackageJsonPlugin = {
 
     const requirePattern = /require\((['"`])(.+?package\.json)\1\)/g;
 
-    if (!requirePattern.test(code)) {
-      return null;
-    }
-
     const newCode = code.replace(
       requirePattern,
       (match, quote, requiredPath) => {
         try {
           const pkgPath = r(dirname(id), requiredPath);
-          const pkgContent = readFileSync(pkgPath, 'utf-8');
-          return pkgContent;
+          return readFileSync(pkgPath, 'utf-8');
         } catch (e) {
           this.warn(
             `Failed to inline '${requiredPath}' for ${id}: ${e.message}`,
@@ -70,14 +65,16 @@ export default {
       },
     },
 
-    json({
-      preferConst: true,
-      compact: true,
-    }),
+    inlinePackageJsonPlugin,
+
     resolve({ exportConditions: ['node', 'default'], preferBuiltins: true }),
     commonjs({
       include: /node_modules/,
       requireReturnsDefault: 'auto',
+    }),
+    json({
+      preferConst: true,
+      compact: true,
     }),
     esbuild({
       target: 'node20',
