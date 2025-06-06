@@ -25,7 +25,7 @@ import { tmpdir } from 'node:os';
  */
 async function runAction(
   inputs: Record<string, string>,
-  extraEnv: Record<string, string> = {},
+  extraEnv: Record<string, string | undefined> = {},
   waiterFn?: () => Promise<void>,
 ): Promise<string | void> {
   const summaryDir = mkdtempSync(join(tmpdir(), 'test-'));
@@ -120,6 +120,7 @@ test.each(matrix)(
               GITHUB_SHA: 'abc123',
               GITHUB_REPOSITORY: 'user/repo',
               GITHUB_TOKEN: '*******',
+              GITHUB_ACTIONS: undefined,
             },
             waiterFn,
           );

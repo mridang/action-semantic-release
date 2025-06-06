@@ -1,28 +1,32 @@
 /**
  * A higher-order function that wraps an asynchronous operation, setting
- * temporary environment variables for the duration of its execution.
+ * or unsetting temporary environment variables for its execution.
  *
- * This is particularly useful in tests where you need to simulate
- * different environment conditions for a piece of code without affecting
- * other tests. It guarantees that the original environment is restored
- * even if the wrapped function fails.
+ * It guarantees that the original environment is restored even if the
+ * wrapped function fails. Pass a string value to set a variable, or
+ * `undefined` to temporarily unset (delete) it.
  *
- * @param env An object of key-value pairs to set as temporary
- * environment variables.
- * @param fn The asynchronous function to execute within the temporary
- * environment.
- * @returns A new async function that, when called, will execute the
- * original function with the specified environment variables set.
+ * @param env An object where keys are variable names and values are the
+ * string to set, or `undefined` to unset the variable.
+ * @param fn The asynchronous function to execute.
+ * @returns A new async function that will run with the modified environment.
  */
 export function withEnvVars<T>(
-  env: Record<string, string>,
+  env: Record<string, string | undefined>,
   fn: () => Promise<T>,
 ): () => Promise<T> {
   return async () => {
     const originalValues: Record<string, string | undefined> = {};
+
     for (const key in env) {
       originalValues[key] = process.env[key];
-      process.env[key] = env[key];
+      const newValue = env[key];
+
+      if (newValue === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = newValue;
+      }
     }
 
     try {
