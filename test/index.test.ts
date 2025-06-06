@@ -99,6 +99,7 @@ test.each(matrix)(
               plugins: ['@semantic-release/commit-analyzer'],
               repositoryUrl: remoteUrl,
               dryRun: true,
+              ci: false,
             }),
           );
 
