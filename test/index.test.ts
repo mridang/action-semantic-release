@@ -28,9 +28,13 @@ async function runAction(
   extraEnv: Record<string, string> = {},
   waiterFn?: () => Promise<void>,
 ): Promise<string | void> {
-  const summaryDir = mkdtempSync(join(tmpdir(), 'summary-test-'));
+  const summaryDir = mkdtempSync(join(tmpdir(), 'test-'));
   const summaryPath = join(summaryDir, 'summary.md');
   writeFileSync(summaryPath, '');
+
+  const eventDir = mkdtempSync(join(tmpdir(), 'test-'));
+  const eventPath = join(eventDir, 'event.json');
+  writeFileSync(eventPath, JSON.stringify({}));
 
   const wrapped = withEnvVars(
     {
@@ -42,6 +46,7 @@ async function runAction(
         ]),
       ),
       GITHUB_STEP_SUMMARY: summaryPath,
+      GITHUB_EVENT_PATH: eventPath,
     },
     () => run(waiterFn),
   );
