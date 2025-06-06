@@ -36,9 +36,26 @@ export default async function waitForAllChecks(
     const { data } = await octokit.rest.checks.listForRef({ owner, repo, ref });
     const checkRuns = data.check_runs;
 
+    // --- NEW LOGGING ---
+    // Log the raw data received from the GitHub API for diagnostics.
+    debug(`API returned ${checkRuns.length} check(s):`);
+    for (const run of checkRuns) {
+      debug(
+        `- Found Check: Name='${run.name}', Status='${run.status}', Conclusion='${run.conclusion}'`,
+      );
+    }
+    // --- END NEW LOGGING ---
+
     const selfIsPresentInChecks = checkRuns.some(
       (run) => run.name === selfIdentifier,
     );
+
+    // --- NEW LOGGING ---
+    // Log the inputs to our heuristic to see why it's not triggering.
+    debug(
+      `Evaluating heuristic: (selfIsPresentInChecks === ${!selfIsPresentInChecks}) && (checkRuns.length === ${checkRuns.length})`,
+    );
+    // --- END NEW LOGGING ---
 
     if (!selfIsPresentInChecks && checkRuns.length === 1) {
       const theOnlyCheck = checkRuns[0];
@@ -55,6 +72,17 @@ export default async function waitForAllChecks(
     }
 
     const otherRuns = checkRuns.filter((run) => run.name !== selfIdentifier);
+
+    // --- NEW LOGGING ---
+    // Log the results of the filter to see what we are waiting for.
+    const otherRunNames =
+      otherRuns.length > 0
+        ? otherRuns.map((run) => `'${run.name}'`).join(', ')
+        : 'None';
+    debug(
+      `After filtering out self, ${otherRuns.length} check(s) remain to be waited for: [${otherRunNames}]`,
+    );
+    // --- END NEW LOGGING ---
 
     if (otherRuns.length === 0) {
       info('No other check runs found. Proceeding.');
