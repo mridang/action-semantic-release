@@ -86,6 +86,7 @@ export async function run(
   waiterFn?: () => Promise<void>,
   ghCtx = new Context(),
 ): Promise<string | void> {
+  console.log(ghCtx);
   try {
     if (ghCtx.eventName === 'push') {
       if (
