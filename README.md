@@ -41,22 +41,25 @@ jobs:
           fetch-depth: 0 # Required for semantic-release to work correctly
 
       - name: Semantic Release
-        uses: mridang/action-semantic-release@v1 # Replace with your desired tag/SHA
+        uses: mridang/action-semantic-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Or a PAT with appropriate scopes
+          ADDITIONAL_SECRET: ${{ secrets.MY_SECRET }}
         with:
-          # Optional inputs:
           wait-for-checks: 'true' # Default is 'true'
           working-directory: '.' # Default is '.'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+This workflow is now configured to trigger a release on any commit to `main` (or `next` or any tag), and then wait for all other checks on that specific push event to succeed before initiating the `semantic-release` process. This ensures that your release pipeline only proceeds when all other CI/CD checks (e.g., tests, linters, build steps) have passed successfully. This behavior can be disabled by setting the `wait-for-checks` input to `false`.
 
 ### Inputs
 
-- `github-token` (required): GitHub token used to authenticate API requests. Required for checking status checks and publishing releases. It is highly recommended to use `secrets.GITHUB_TOKEN`. For publishing to package registries, you might need a Personal Access Token (PAT) with elevated scopes, depending on your setup.
-- `wait-for-checks` (optional, default: `'true'`): Whether to wait for all required status checks to pass before running `semantic-release`. Set to `'false'` to disable this.
-- `working-directory` (optional, default: `'.'`) : The directory to search for `semantic-release` configuration files.
+- `github-token` (required): GitHub token used to authenticate API requests for checking status checks and publishing releases. This token is automatically made available to `semantic-release` plugins as the `GITHUB_TOKEN` environment variable, so you do not need to set it explicitly. If you do set the `GITHUB_TOKEN` environment variable in your workflow, the value provided by this input will take precedence. It is highly recommended to use `secrets.GITHUB_TOKEN`. For publishing to package registries, you might need a Personal Access Token (PAT) with elevated scopes, depending on your setup.
 
-## Configuration
+* `wait-for-checks` (optional, default: `'true'`): Whether to wait for all required status checks to pass before running `semantic-release`. Set to `'false'` to disable this.
+* `working-directory` (optional, default: `'.'`) : The directory to search for `semantic-release` configuration files.
+
+### Configuration
 
 This action uses `cosmiconfig` to find your `semantic-release` configuration. It supports the following file formats:
 
@@ -70,7 +73,7 @@ This action uses `cosmiconfig` to find your `semantic-release` configuration. It
 - .releaserc.yml`
 - `package.json` (under the `release` key)
 
-### In NodeJS (or related) projects
+### In Node.js (or related) projects
 
 For JavaScript/TypeScript projects, you typically use an imperative configuration file like `release.config.mjs` or `release.config.js`. When using such a file, all `semantic-release` plugins must be declared as dependencies in your project's `package.json` file.
 
@@ -141,7 +144,7 @@ The action will detect the plugins listed in these declarative files, create a t
 ## Contributing
 
 If you have suggestions for how this app could be improved, or
-want to report a bug, open an issue - we'd love all and any
+want to report a bug, open an issue—we'd love all and any
 contributions.
 
 ## License

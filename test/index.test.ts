@@ -39,7 +39,7 @@ const matrix = [
   },
 ];
 
-it.each(matrix)(
+test.each(matrix)(
   'runs semantic-release for event "$eventName" with ref "$ref" and wait="$wait" (shouldRun: $shouldRun)',
   ({ eventName, ref, wait, shouldRun }) => {
     return withTempDir(
@@ -80,6 +80,6 @@ it.each(matrix)(
           expect(waited).toBe(false);
         }
       }),
-    )(); // Call the composed function
+    )();
   },
 );

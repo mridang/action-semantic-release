@@ -1,4 +1,4 @@
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -10,7 +10,7 @@ export function withTempDir<T extends (ctx: { tmp: string }) => Promise<void>>(
     try {
       await fn({ tmp });
     } finally {
-      //rmSync(tmp, { recursive: true, force: true });
+      rmSync(tmp, { recursive: true, force: true });
     }
   };
 }
