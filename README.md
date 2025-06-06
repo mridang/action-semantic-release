@@ -1,0 +1,149 @@
+# Semantic Release GitHub Action
+
+A GitHub Action that runs [semantic-release](https://semantic-release.gitbook.io/semantic-release/) when code is pushed to a branch or tag. This action streamlines your release process by automating versioning and package publishing, ensuring consistency and adherence to semantic versioning principles.
+
+## Features
+
+- **Automated Plugin Installation**: Automatically installs `semantic-release` plugins defined in your declarative configuration files (e.g., `.json`, `.yaml`).
+- **Status Check Waiting**: Optionally waits for all required GitHub status checks to pass before executing `semantic-release`, preventing releases from being published prematurely.
+- **Flexible Configuration**: Supports various `semantic-release` configuration file formats and allows you to specify a working directory.
+- **Detailed Output**: Provides clear logs and a summary of the published release version.
+
+### Why?
+
+- **Reusability**: This action is designed to be highly reusable across multiple projects, simplifying your CI/CD setup for semantic releases.
+- **Wait for Checks**: Unlike typical `semantic-release` workflows, this action allows you to explicitly wait for all other GitHub checks to complete before proceeding with the release. This ensures that releases are only published after all tests and quality gates have passed. **Note**: This feature does not wait for disabled workflows.
+- **Decoupled Workflow**: By waiting for other checks, this action can run independently of your main CI workflow (which might be triggered by pull requests and merges to `main`). This decoupling reduces the risk of exposing sensitive `semantic-release` tokens in contexts where they are not strictly necessary, a common security concern in open-source projects.
+- **Fast Execution**: The action optimizes for speed by caching dependencies, leading to quicker execution times for your release workflow.
+
+## Usage
+
+To use this action, add it to your workflow file (e.g., `.github/workflows/release.yml`).
+
+```yaml
+name: Release
+
+on:
+  push:
+    branches:
+      - main # or your default branch
+      - next
+    tags:
+      - '*' # if you want to trigger on tags as well
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for semantic-release to work correctly
+
+      - name: Semantic Release
+        uses: mridang/action-semantic-release@v1 # Replace with your desired tag/SHA
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Or a PAT with appropriate scopes
+        with:
+          # Optional inputs:
+          wait-for-checks: 'true' # Default is 'true'
+          working-directory: '.' # Default is '.'
+```
+
+### Inputs
+
+- `github-token` (required): GitHub token used to authenticate API requests. Required for checking status checks and publishing releases. It is highly recommended to use `secrets.GITHUB_TOKEN`. For publishing to package registries, you might need a Personal Access Token (PAT) with elevated scopes, depending on your setup.
+- `wait-for-checks` (optional, default: `'true'`): Whether to wait for all required status checks to pass before running `semantic-release`. Set to `'false'` to disable this.
+- `working-directory` (optional, default: `'.'`) : The directory to search for `semantic-release` configuration files.
+
+## Configuration
+
+This action uses `cosmiconfig` to find your `semantic-release` configuration. It supports the following file formats:
+
+- .releaserc` (YAML or JSON)
+- `release.config.js`
+- `release.config.cjs`
+- `release.config.mjs`
+- `release.config.ts`
+- .releaserc.json`
+- .releaserc.yaml`
+- .releaserc.yml`
+- `package.json` (under the `release` key)
+
+### In NodeJS (or related) projects
+
+For JavaScript/TypeScript projects, you typically use an imperative configuration file like `release.config.mjs` or `release.config.js`. When using such a file, all `semantic-release` plugins must be declared as dependencies in your project's `package.json` file.
+
+**Example `release.config.mjs`:**
+
+```javascript
+// release.config.mjs
+const config = {
+  branches: ['main', { name: 'beta', prerelease: true }],
+  plugins: [
+    '@semantic-release/commit-analyzer',
+    '@semantic-release/release-notes-generator',
+    '@semantic-release/npm',
+    '@semantic-release/github',
+  ],
+};
+
+export default config;
+```
+
+**Example `package.json` excerpt:**
+
+```json
+{
+  "name": "my-node-app",
+  "version": "1.0.0",
+  "devDependencies": {
+    "semantic-release": "^23.0.0",
+    "@semantic-release/commit-analyzer": "^12.0.0",
+    "@semantic-release/release-notes-generator": "^13.0.0",
+    "@semantic-release/npm": "^12.0.0",
+    "@semantic-release/github": "^9.0.0"
+  }
+}
+```
+
+The action will automatically run `npm install` in your working directory to ensure all these declared dependencies are available for `semantic-release` to function correctly.
+
+### In non-Node projects
+
+For projects not based on Node.js, we recommend using a declarative configuration file such as `.releaserc.json`, `.releaserc.yaml`, or `.releaserc.yml`. With these formats, you can declare your `semantic-release` plugins directly within the configuration file, and the action will automatically install the necessary dependencies without requiring a `package.json` or any extra setup steps on your part.
+
+**Example `.releaserc.json`:**
+
+```json
+{
+  "branches": ["main", { "name": "beta", "prerelease": true }],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/github"
+  ]
+}
+```
+
+The action will detect the plugins listed in these declarative files, create a temporary `package.json` for them, and install them on the fly, making it very convenient for polyglot repositories.
+
+## Known Issues
+
+- This action requires a deep checkout of the repository history (e.g., `fetch-depth: 0` in `actions/checkout`). This is necessary for `semantic-release` to properly analyze the commit history for versioning.
+- This action is designed to be triggered by `push` events (branches or tags) and will not work for custom workflows where you need to release using `workflow_dispatch`.
+
+## Useful links
+
+- **[Semantic Release](https://semantic-release.gitbook.io/semantic-release/):** The automated versioning and package publishing tool this action runs.
+- **[Cosmiconfig](https://github.com/cosmiconfig/cosmiconfig):** The universal configuration loader used by this action to find `semantic-release` configurations.
+
+## Contributing
+
+If you have suggestions for how this app could be improved, or
+want to report a bug, open an issue - we'd love all and any
+contributions.
+
+## License
+
+Apache License 2.0 © 2024 Mridang Agarwalla

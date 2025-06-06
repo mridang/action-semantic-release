@@ -4,20 +4,22 @@ import {
   getInput,
   setFailed as actionFailed,
   info,
-  debug,
   startGroup,
   endGroup,
   summary,
 } from '@actions/core';
-import { getOctokit } from '@actions/github';
 import { cosmiconfig } from 'cosmiconfig';
 import semanticRelease, { Options, Result } from 'semantic-release';
 import { loaders } from './loaders.js';
 import { Context } from '@actions/github/lib/context.js';
+import waitForAllChecks from './waiter.js';
 
-const CHECK_TIMEOUT_MS = 10 * 60 * 1000;
-const CHECK_INTERVAL_MS = 2 * 1000;
-
+/**
+ * Retrieves the GitHub token from the action's 'github-token' input.
+ *
+ * @returns The GitHub token.
+ * @throws {Error} if the 'github-token' input is empty.
+ */
 function getGithubToken(): string {
   const token = getInput('github-token', { required: true }).trim();
   if (token) {
@@ -27,6 +29,12 @@ function getGithubToken(): string {
   }
 }
 
+/**
+ * Retrieves the working directory from the action's 'working-directory' input.
+ *
+ * @returns The specified working directory or the current process's
+ * working directory if the input is empty.
+ */
 function getWorkingDirectory(): string {
   const dir = getInput('working-directory').trim();
   if (dir) {
@@ -36,6 +44,12 @@ function getWorkingDirectory(): string {
   }
 }
 
+/**
+ * Retrieves the boolean value for 'wait-for-checks' input.
+ *
+ * @returns `true` if 'wait-for-checks' is 'true' or empty, `false` if 'false'.
+ * @throws {Error} if the 'wait-for-checks' input is an invalid value.
+ */
 function getWaitForChecks(): boolean {
   const raw = getInput('wait-for-checks').trim().toLowerCase();
   if (raw === 'false') {
@@ -49,6 +63,13 @@ function getWaitForChecks(): boolean {
   }
 }
 
+/**
+ * Sets the action's failure status with a given message.
+ * In a JEST test environment, it throws an error instead of calling
+ * `actionFailed`.
+ *
+ * @param message - The error message or Error object.
+ */
 function setFailed(message: string | Error): void {
   if (process.env.JEST_WORKER_ID) {
     if (message instanceof Error) {
@@ -59,56 +80,6 @@ function setFailed(message: string | Error): void {
   } else {
     actionFailed(message);
   }
-}
-
-async function waitForAllChecks(ghCtx: Context, token: string): Promise<void> {
-  const octokit = getOctokit(token);
-  const { owner, repo } = ghCtx.repo;
-  const ref = ghCtx.sha;
-  const currentJobName = ghCtx.job;
-  const deadline = Date.now() + CHECK_TIMEOUT_MS;
-
-  info(`Starting check run monitoring for ref: ${ref}`);
-  info(`Will ignore self (this job): '${currentJobName}'`);
-
-  while (Date.now() < deadline) {
-    const { data } = await octokit.rest.checks.listForRef({ owner, repo, ref });
-
-    const otherRuns = data.check_runs.filter(
-      (run) => run.name !== currentJobName,
-    );
-
-    if (otherRuns.length === 0) {
-      info('No other check runs found. Proceeding.');
-      return;
-    }
-
-    const pendingChecks = otherRuns.filter((run) => run.status !== 'completed');
-
-    if (pendingChecks.length === 0) {
-      const allSuccessful = otherRuns.every(
-        (run) => run.conclusion === 'success',
-      );
-      if (allSuccessful) {
-        info('✅ All other check runs have completed successfully.');
-        return;
-      } else {
-        const failedCheck = otherRuns.find(
-          (run) => run.conclusion !== 'success',
-        );
-        throw new Error(
-          `❌ Check '${failedCheck?.name}' failed with conclusion: ${failedCheck?.conclusion}.`,
-        );
-      }
-    } else {
-      const pendingCheckNames = pendingChecks.map((run) => run.name).join(', ');
-      debug(`⏳ Waiting for checks to complete: ${pendingCheckNames}`);
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, CHECK_INTERVAL_MS));
-  }
-
-  throw new Error('Timeout: Not all other check runs completed in time.');
 }
 
 export async function run(
@@ -159,6 +130,10 @@ export async function run(
             config as Options,
             {
               cwd: workingDirectory,
+              env: {
+                ...process.env,
+                GITHUB_TOKEN: ghCtx.repo,
+              },
             },
           );
           endGroup();
