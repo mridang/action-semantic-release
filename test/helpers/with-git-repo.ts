@@ -1,4 +1,3 @@
-// file: test/helpers/with-git-repo.ts
 import { SimpleGit, simpleGit } from 'simple-git';
 import { ChildProcess, spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';

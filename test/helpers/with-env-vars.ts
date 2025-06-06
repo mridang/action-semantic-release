@@ -19,12 +19,23 @@ export function withEnvVars<T>(
   fn: () => Promise<T>,
 ): () => Promise<T> {
   return async () => {
-    const originalEnv = { ...process.env };
-    Object.assign(process.env, env);
+    const originalValues: Record<string, string | undefined> = {};
+    for (const key in env) {
+      originalValues[key] = process.env[key];
+      process.env[key] = env[key];
+    }
+
     try {
       return await fn();
     } finally {
-      process.env = originalEnv;
+      for (const key in originalValues) {
+        const originalValue = originalValues[key];
+        if (originalValue === undefined) {
+          delete process.env[key];
+        } else {
+          process.env[key] = originalValue;
+        }
+      }
     }
   };
 }

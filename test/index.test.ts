@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { run } from '../src/index.js';
 import { withTempDir } from './helpers/with-temp-dir.js';
@@ -32,24 +32,20 @@ async function runAction(
   const summaryPath = join(summaryDir, 'summary.md');
   writeFileSync(summaryPath, '');
 
-  try {
-    const wrapped = withEnvVars(
-      {
-        ...extraEnv,
-        ...Object.fromEntries(
-          Object.entries(inputs).map(([key, value]) => [
-            `INPUT_${key.replace(/ /g, '_').toUpperCase()}`,
-            value,
-          ]),
-        ),
-        GITHUB_STEP_SUMMARY: summaryPath,
-      },
-      () => run(waiterFn),
-    );
-    return await wrapped();
-  } finally {
-    rmSync(summaryDir, { recursive: true, force: true });
-  }
+  const wrapped = withEnvVars(
+    {
+      ...extraEnv,
+      ...Object.fromEntries(
+        Object.entries(inputs).map(([key, value]) => [
+          `INPUT_${key.replace(/ /g, '_').toUpperCase()}`,
+          value,
+        ]),
+      ),
+      GITHUB_STEP_SUMMARY: summaryPath,
+    },
+    () => run(waiterFn),
+  );
+  return await wrapped();
 }
 
 const matrix = [
