@@ -8,7 +8,7 @@ import {
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { cosmiconfig } from 'cosmiconfig';
-import { loaders } from '../src/loaders.js';
+import { createLoaders } from '../src/loaders.js';
 import * as YAML from 'yaml';
 
 function withTempDir(fn: (ctx: { tmp: string }) => void | Promise<void>) {
@@ -66,7 +66,7 @@ it.each([
 
       const explorer = cosmiconfig('release', {
         stopDir: tmp,
-        loaders,
+        loaders: createLoaders(),
       });
 
       const result = await explorer.search(tmp);

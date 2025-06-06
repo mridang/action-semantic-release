@@ -48,6 +48,7 @@ jobs:
           wait-for-checks: 'true' # Default is 'true'
           working-directory: '.' # Default is '.'
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          allow-force-install: 'true' # Default is 'false'
 ```
 
 This workflow is now configured to trigger a release on any commit to `main` (or `next` or any tag), and then wait for all other checks on that specific push event to succeed before initiating the `semantic-release` process. This ensures that your release pipeline only proceeds when all other CI/CD checks (e.g., tests, linters, build steps) have passed successfully. This behavior can be disabled by setting the `wait-for-checks` input to `false`.
@@ -55,9 +56,9 @@ This workflow is now configured to trigger a release on any commit to `main` (or
 ### Inputs
 
 - `github-token` (required): GitHub token used to authenticate API requests for checking status checks and publishing releases. This token is automatically made available to `semantic-release` plugins as the `GITHUB_TOKEN` environment variable, so you do not need to set it explicitly. If you do set the `GITHUB_TOKEN` environment variable in your workflow, the value provided by this input will take precedence. It is highly recommended to use `secrets.GITHUB_TOKEN`. For publishing to package registries, you might need a Personal Access Token (PAT) with elevated scopes, depending on your setup.
-
-* `wait-for-checks` (optional, default: `'true'`): Whether to wait for all required status checks to pass before running `semantic-release`. Set to `'false'` to disable this.
-* `working-directory` (optional, default: `'.'`) : The directory to search for `semantic-release` configuration files.
+- `wait-for-checks` (optional, default: `'true'`): Whether to wait for all required status checks to pass before running `semantic-release`. Set to `'false'` to disable this.
+- `working-directory` (optional, default: `'.'`) : The directory to search for `semantic-release` configuration files.
+- `allow-force-install` (optional, default: `'false'`): If `'true'`, allows the action to overwrite an existing package.json file and forces npm to install dependencies using the `--force` flag. This can be used to resolve conflicting peer dependency issues but should be used with caution as it may lead to a broken installation.
 
 ### Configuration
 

@@ -10,7 +10,7 @@ import {
 } from '@actions/core';
 import { cosmiconfig } from 'cosmiconfig';
 import semanticRelease, { Options, Result } from 'semantic-release';
-import { loaders } from './loaders.js';
+import { createLoaders } from './loaders.js';
 import { Context } from '@actions/github/lib/context.js';
 import waitForAllChecks from './waiter.js';
 
@@ -64,6 +64,25 @@ function getWaitForChecks(): boolean {
 }
 
 /**
+ * Retrieves the boolean value for the 'allow-force-install' input.
+ *
+ * @returns `true` if 'allow-force-install' is 'true' or empty, `false` if 'false'.
+ * @throws {Error} if the 'allow-force-install' input is an invalid value.
+ */
+function getAllowForceInstall(): boolean {
+  const raw = getInput('allow-force-install').trim().toLowerCase();
+  if (raw === 'true') {
+    return true;
+  } else if (raw === 'false' || raw === '') {
+    return false;
+  } else {
+    throw new Error(
+      'Invalid value for "allow-force-install". Use "true" or "false".',
+    );
+  }
+}
+
+/**
  * Sets the action's failure status with a given message.
  * In a JEST test environment, it throws an error instead of calling
  * `actionFailed`.
@@ -98,7 +117,7 @@ export async function run(
         const waitForChecks = getWaitForChecks();
 
         const explorer = cosmiconfig('release', {
-          loaders,
+          loaders: createLoaders(getAllowForceInstall()),
         });
 
         const result = await explorer.search(workingDirectory);

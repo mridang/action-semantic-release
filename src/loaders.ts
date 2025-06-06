@@ -79,11 +79,13 @@ function declarativeLoader(loader: Loader): Loader {
 
 /**
  * Creates a loader that runs `npm install` in the config file's directory.
+ * If allowForce is true, it will use the --force flag.
  *
  * @param loader - The base loader to parse the configuration file.
+ * @param allowForce - Whether to use `npm install --force`.
  * @returns A loader that installs dependencies using npm.
  */
-function imperativeLoader(loader: Loader): Loader {
+function imperativeLoader(loader: Loader, allowForce: boolean): Loader {
   return async (filepath, content) => {
     debug(`Loading imperative config: ${filepath}`);
     const config = await loader(filepath, content);
@@ -91,8 +93,13 @@ function imperativeLoader(loader: Loader): Loader {
 
     startGroup('Installing dependencies');
     try {
-      info('Running npm install');
-      execSync('npm install --no-audit --no-progress --no-fund --quiet', {
+      // MODIFIED: Append --force to the command if allowForce is true.
+      const command = allowForce
+        ? 'npm install --force --no-audit --no-progress --no-fund --quiet'
+        : 'npm install --no-audit --no-progress --no-fund --quiet';
+
+      info(`Running command: ${command}`);
+      execSync(command, {
         cwd,
         stdio: 'inherit',
       });
@@ -111,17 +118,25 @@ function imperativeLoader(loader: Loader): Loader {
 }
 
 /**
- * Loaders for all supported config file extensions, enhanced with
- * declarative and imperative behavior where appropriate.
+ * REFACTORED: Creates a loaders object for cosmiconfig, configured with the
+ * allowForce flag.
+ *
+ * @param allowForce - If true, enables force-install and overwriting package.json.
+ * @returns A cosmiconfig loaders object.
  */
-export const loaders = {
-  ...defaultLoaders,
-  '.json': imperativeLoader(declarativeLoader(defaultLoaders['.json'])),
-  '.yaml': imperativeLoader(declarativeLoader(defaultLoaders['.yaml'])),
-  '.yml': imperativeLoader(declarativeLoader(defaultLoaders['.yml'])),
-  noExt: imperativeLoader(declarativeLoader(defaultLoaders['.yaml'])),
-  '.js': imperativeLoader(defaultLoaders['.js']),
-  '.cjs': imperativeLoader(defaultLoaders['.cjs']),
-  '.mjs': imperativeLoader(defaultLoaders['.mjs']),
-  '.ts': imperativeLoader(defaultLoaders['.ts']),
-};
+export function createLoaders(allowForce = false) {
+  const dLoader = (loader: Loader) => declarativeLoader(loader);
+  const iLoader = (loader: Loader) => imperativeLoader(loader, allowForce);
+
+  return {
+    ...defaultLoaders,
+    '.json': iLoader(dLoader(defaultLoaders['.json'])),
+    '.yaml': iLoader(dLoader(defaultLoaders['.yaml'])),
+    '.yml': iLoader(dLoader(defaultLoaders['.yml'])),
+    noExt: iLoader(dLoader(defaultLoaders['.yaml'])),
+    '.js': iLoader(defaultLoaders['.js']),
+    '.cjs': iLoader(defaultLoaders['.cjs']),
+    '.mjs': iLoader(defaultLoaders['.mjs']),
+    '.ts': iLoader(defaultLoaders['.ts']),
+  };
+}

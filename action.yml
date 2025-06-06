@@ -30,6 +30,14 @@ inputs:
         required: false
         default: '.'
 
+    allow-force-install:
+        description: >
+            If 'true', allows overwriting an existing package.json and forces
+            npm to install dependencies using '--force' to resolve conflicting
+            peer dependencies. Use with caution.
+        required: false
+        default: 'false'
+
 runs:
     using: node20
     main: dist/main.cjs
