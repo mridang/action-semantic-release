@@ -1,7 +1,7 @@
 /* eslint-disable testing-library/no-debugging-utils */
 import { Context } from '@actions/github/lib/context.js';
 import { getOctokit } from '@actions/github';
-import { debug, info, warning } from '@actions/core';
+import { debug, info } from '@actions/core';
 
 const CHECK_TIMEOUT_MS = 20 * 60 * 1000;
 const CHECK_INTERVAL_MS = 2 * 1000;
@@ -10,9 +10,8 @@ const CHECK_INTERVAL_MS = 2 * 1000;
  * Waits for all *other* GitHub check runs on the current commit to complete
  * and be successful.
  *
- * This version includes a refined heuristic: if the current job's ID is not
- * found in the list of check run names AND only one check is running,
- * it assumes that single check is the current job and proceeds.
+ * This version includes a refined heuristic based on the list of PENDING checks
+ * to correctly identify and bypass a deadlock caused by a custom job name.
  *
  * @param ghCtx - The GitHub Actions context object.
  * @param token - The GitHub token for API authentication.
@@ -34,70 +33,51 @@ export default async function waitForAllChecks(
 
   while (Date.now() < deadline) {
     const { data } = await octokit.rest.checks.listForRef({ owner, repo, ref });
-    const checkRuns = data.check_runs;
+    const allRuns = data.check_runs;
 
-    // --- NEW LOGGING ---
-    // Log the raw data received from the GitHub API for diagnostics.
-    debug(`API returned ${checkRuns.length} check(s):`);
-    for (const run of checkRuns) {
-      debug(
-        `- Found Check: Name='${run.name}', Status='${run.status}', Conclusion='${run.conclusion}'`,
-      );
-    }
-    // --- END NEW LOGGING ---
+    // --- YOUR CORRECTED LOGIC ---
+    // First, get a true picture of what we are actively waiting for.
+    const pendingRuns = allRuns.filter((run) => run.status !== 'completed');
 
-    const selfIsPresentInChecks = checkRuns.some(
+    // Now, apply the heuristic ONLY to the list of pending checks.
+    const selfIsPresentInPending = pendingRuns.some(
       (run) => run.name === selfIdentifier,
     );
 
-    // --- NEW LOGGING ---
-    // Log the inputs to our heuristic to see why it's not triggering.
-    debug(
-      `Evaluating heuristic: (selfIsPresentInChecks === ${!selfIsPresentInChecks}) && (checkRuns.length === ${checkRuns.length})`,
-    );
-    // --- END NEW LOGGING ---
-
-    if (!selfIsPresentInChecks && checkRuns.length === 1) {
-      const theOnlyCheck = checkRuns[0];
+    if (!selfIsPresentInPending && pendingRuns.length === 1) {
+      const theOnlyPendingCheck = pendingRuns[0];
       info(
-        `Heuristic triggered: The job ID '${selfIdentifier}' was not found.`,
+        `Heuristic triggered: The job ID '${selfIdentifier}' was not found in the list of pending checks.`,
       );
       info(
-        `Only one check is running: '${theOnlyCheck.name}'. Assuming this is the current job and proceeding.`,
+        `Only one pending check remains: '${theOnlyPendingCheck.name}'. Assuming this is the current job and proceeding.`,
       );
-      warning(
-        'This heuristic is safe for most workflows but may be inaccurate in complex scenarios.',
-      );
-      return;
+      return; // <-- This exits the waiter, solving the deadlock.
     }
+    // --- END OF CORRECTED LOGIC ---
 
-    const otherRuns = checkRuns.filter((run) => run.name !== selfIdentifier);
-
-    // --- NEW LOGGING ---
-    // Log the results of the filter to see what we are waiting for.
-    const otherRunNames =
-      otherRuns.length > 0
-        ? otherRuns.map((run) => `'${run.name}'`).join(', ')
-        : 'None';
-    debug(
-      `After filtering out self, ${otherRuns.length} check(s) remain to be waited for: [${otherRunNames}]`,
-    );
-    // --- END NEW LOGGING ---
+    // The main filter still operates on all runs to correctly identify other checks.
+    const otherRuns = allRuns.filter((run) => run.name !== selfIdentifier);
 
     if (otherRuns.length === 0) {
       info('No other check runs found. Proceeding.');
       return;
     }
 
-    const pendingChecks = otherRuns.filter((run) => run.status !== 'completed');
+    // But the pending check logic now correctly uses the pre-filtered pending list.
+    const pendingOtherRuns = otherRuns.filter(
+      (run) => run.status !== 'completed',
+    );
 
-    if (pendingChecks.length === 0) {
+    if (pendingOtherRuns.length === 0) {
+      // Once nothing is pending, check the conclusions of all other runs.
       const allSuccessful = otherRuns.every(
         (run) =>
           run.conclusion === 'success' ||
           run.conclusion === 'skipped' ||
           run.conclusion === 'neutral',
       );
+
       if (allSuccessful) {
         info('All other check runs have completed successfully.');
         return;
@@ -113,7 +93,9 @@ export default async function waitForAllChecks(
         );
       }
     } else {
-      const pendingCheckNames = pendingChecks.map((run) => run.name).join(', ');
+      const pendingCheckNames = pendingOtherRuns
+        .map((run) => run.name)
+        .join(', ');
       info(`Waiting for checks to complete: ${pendingCheckNames}`);
     }
 
