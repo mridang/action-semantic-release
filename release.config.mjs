@@ -7,9 +7,7 @@ export default {
     [
       '@semantic-release/github',
       {
-        assets: [
-          { path: '*.tgz', label: 'Action' }
-        ],
+        assets: [{ path: '*.tgz', label: 'Action' }],
       },
     ],
     [
