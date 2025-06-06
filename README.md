@@ -63,14 +63,14 @@ This workflow is now configured to trigger a release on any commit to `main` (or
 
 This action uses `cosmiconfig` to find your `semantic-release` configuration. It supports the following file formats:
 
-- .releaserc` (YAML or JSON)
+- `.releaserc`
 - `release.config.js`
 - `release.config.cjs`
 - `release.config.mjs`
 - `release.config.ts`
-- .releaserc.json`
-- .releaserc.yaml`
-- .releaserc.yml`
+- `.releaserc.json`
+- `.releaserc.yaml`
+- `.releaserc.yml`
 - `package.json` (under the `release` key)
 
 ### In Node.js (or related) projects
