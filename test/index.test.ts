@@ -1,6 +1,7 @@
 import { expect } from '@jest/globals';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+// noinspection ES6PreferShortImport
 import { run } from '../src/index.js';
 import { withTempDir } from './helpers/with-temp-dir.js';
 import { withGitRepo } from './helpers/with-git-repo.js';

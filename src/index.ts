@@ -122,14 +122,17 @@ export async function run(
         const result = await explorer.search(workingDirectory);
 
         if (result === null) {
+          // noinspection ExceptionCaughtLocallyJS
           throw new Error('No configuration file found.');
         } else if (
           typeof result.config !== 'object' ||
           result.config === null ||
           !result.filepath
         ) {
+          // noinspection ExceptionCaughtLocallyJS
           throw new Error('Invalid semantic-release configuration.');
         } else if (result.isEmpty) {
+          // noinspection ExceptionCaughtLocallyJS
           throw new Error(`Configuration file "${result.filepath}" is empty.`);
         } else {
           const config = result.config;
