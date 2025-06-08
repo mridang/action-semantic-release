@@ -93,7 +93,6 @@ function imperativeLoader(loader: Loader, allowForce: boolean): Loader {
 
     startGroup('Installing dependencies');
     try {
-      // MODIFIED: Append --force to the command if allowForce is true.
       const command = allowForce
         ? 'npm install --force --no-audit --no-progress --no-fund --quiet'
         : 'npm install --no-audit --no-progress --no-fund --quiet';
