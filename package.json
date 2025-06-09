@@ -28,7 +28,7 @@
 	"files": [
 		"dist"
 	],
-	"license": "ISC",
+	"license": "Apache-2.0",
 	"description": "Runs semantic-release when code is pushed to a branch or tag. Automatically installs plugins for declarative configs and waits for all required GitHub checks to pass before publishing.",
 	"private": false,
 	"engines": {
