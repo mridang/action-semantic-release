@@ -1,4 +1,3 @@
-/* eslint-disable testing-library/no-debugging-utils */
 // noinspection ExceptionCaughtLocallyJS
 import {
   getInput,
@@ -7,6 +6,7 @@ import {
   startGroup,
   endGroup,
   summary,
+  warning,
 } from '@actions/core';
 import { cosmiconfig } from 'cosmiconfig';
 import semanticRelease, { Options, Result } from 'semantic-release';
@@ -161,7 +161,7 @@ export async function run(
           endGroup();
 
           if (!releaseResult) {
-            setFailed('No release was published.');
+            warning('No release was published.');
           } else {
             const version = releaseResult.nextRelease.version;
             info(`Release published: version ${version}`);
