@@ -15,6 +15,7 @@ A GitHub Action that runs [semantic-release](https://semantic-release.gitbook.io
 - **Wait for Checks**: Unlike typical `semantic-release` workflows, this action allows you to explicitly wait for all other GitHub checks to complete before proceeding with the release. This ensures that releases are only published after all tests and quality gates have passed. **Note**: This feature does not wait for disabled workflows.
 - **Decoupled Workflow**: By waiting for other checks, this action can run independently of your main CI workflow (which might be triggered by pull requests and merges to `main`). This decoupling reduces the risk of exposing sensitive `semantic-release` tokens in contexts where they are not strictly necessary, a common security concern in open-source projects.
 - **Fast Execution**: The action optimizes for speed by caching dependencies, leading to quicker execution times for your release workflow.
+- **Simplified for Polyglot Repositories**: Abstracts away the Node.js ecosystem, enabling `semantic-release` usage in non-Node.js projects without requiring a `package.json` or various JavaScript/TypeScript configuration files within your repository.
 
 ## Usage
 
@@ -60,6 +61,10 @@ This workflow is now configured to trigger a release on any commit to `main` (or
 - `working-directory` (optional, default: `'.'`) : The directory to search for `semantic-release` configuration files.
 - `allow-force-install` (optional, default: `'false'`): If `'true'`, allows the action to overwrite an existing package.json file and forces npm to install dependencies using the `--force` flag. This can be used to resolve conflicting peer dependency issues but should be used with caution as it may lead to a broken installation.
 
+## Outputs
+
+None
+
 ### Configuration
 
 This action uses `cosmiconfig` to find your `semantic-release` configuration. It supports the following file formats:
@@ -76,13 +81,12 @@ This action uses `cosmiconfig` to find your `semantic-release` configuration. It
 
 ### In Node.js (or related) projects
 
-For JavaScript/TypeScript projects, you typically use an imperative configuration file like `release.config.mjs` or `release.config.js`. When using such a file, all `semantic-release` plugins must be declared as dependencies in your project's `package.json` file.
+For JavaScript/TypeScript projects, you typically use an imperative configuration file like `release.config.mjs` or `release.config.js`. When using such a file, all `semantic-release` plugins must be declared as development dependencies in your project's `package.json` file.
 
 **Example `release.config.mjs`:**
 
 ```javascript
-// release.config.mjs
-const config = {
+export default {
   branches: ['main', { name: 'beta', prerelease: true }],
   plugins: [
     '@semantic-release/commit-analyzer',
@@ -91,24 +95,6 @@ const config = {
     '@semantic-release/github',
   ],
 };
-
-export default config;
-```
-
-**Example `package.json` excerpt:**
-
-```json
-{
-  "name": "my-node-app",
-  "version": "1.0.0",
-  "devDependencies": {
-    "semantic-release": "^23.0.0",
-    "@semantic-release/commit-analyzer": "^12.0.0",
-    "@semantic-release/release-notes-generator": "^13.0.0",
-    "@semantic-release/npm": "^12.0.0",
-    "@semantic-release/github": "^9.0.0"
-  }
-}
 ```
 
 The action will automatically run `npm install` in your working directory to ensure all these declared dependencies are available for `semantic-release` to function correctly.
@@ -141,6 +127,7 @@ The action will detect the plugins listed in these declarative files, create a t
 
 - **[Semantic Release](https://semantic-release.gitbook.io/semantic-release/):** The automated versioning and package publishing tool this action runs.
 - **[Cosmiconfig](https://github.com/cosmiconfig/cosmiconfig):** The universal configuration loader used by this action to find `semantic-release` configurations.
+- **[Semantic Versioning (SemVer)](https://semver.org/):** A widely adopted standard for version numbering that your commit messages can help facilitate with automated tools.
 
 ## Contributing
 
@@ -150,4 +137,4 @@ contributions.
 
 ## License
 
-Apache License 2.0 © 2024 Mridang Agarwalla
+Apache License 2.0 © 2025 Mridang Agarwalla
