@@ -1,13 +1,12 @@
-name: Semantic Release
+name: Better Semantic Releaser Action
 
 description: |
   Runs semantic-release when code is pushed to a branch or tag.
-  Automatically installs plugins for declarative configs and waits for
-  all required GitHub checks to pass before publishing.
 
 author: mridang
 branding:
   color: blue
+  icon: box
 
 inputs:
   github-token:
