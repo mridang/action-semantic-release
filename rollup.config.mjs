@@ -3,7 +3,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { dirname, resolve as r } from 'node:path';
 import { readFileSync } from 'node:fs';
-import nodules from 'node:module';
+import * as nodules from 'node:module';
 import typescript from '@rollup/plugin-typescript';
 
 const NODE_BUILTINS = nodules.builtinModules.reduce(
@@ -12,20 +12,21 @@ const NODE_BUILTINS = nodules.builtinModules.reduce(
 );
 
 const inlinePackageJsonPlugin = {
-  name: 'inline-package-json',
+  name: 'inline-json',
   transform(code, id) {
     if (!id.includes('node_modules')) {
       return null;
     }
 
-    const requirePattern = /require\((['"`])(.+?package\.json)\1\)/g;
+    const requirePattern =
+      /require\((['"`])([-.\/\w]+?(?:package\.json|commitlint\.schema\.json))\1\)/g;
 
     const newCode = code.replace(
       requirePattern,
       (match, quote, requiredPath) => {
         try {
-          const pkgPath = r(dirname(id), requiredPath);
-          return readFileSync(pkgPath, 'utf-8');
+          const filePath = r(dirname(id), requiredPath);
+          return readFileSync(filePath, 'utf-8');
         } catch (e) {
           this.warn(
             `Failed to inline '${requiredPath}' for ${id}: ${e.message}`,
@@ -72,9 +73,15 @@ export default {
     }
   },
   plugins: [
-    json(),
+    json({
+      preferConst: true,
+      compact: true,
+    }),
     inlinePackageJsonPlugin,
-    resolve({ exportConditions: ['node', 'default'], preferBuiltins: true }),
+    resolve({
+      exportConditions: ['node', 'default'],
+      preferBuiltins: true,
+    }),
     commonjs({
       include: /node_modules/,
       requireReturnsDefault: () => {
