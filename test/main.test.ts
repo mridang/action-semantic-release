@@ -12,6 +12,7 @@ import { rollup } from 'rollup';
 import { createRequire } from 'node:module';
 import vm, { constants as VM } from 'node:vm';
 import jwt from 'jsonwebtoken';
+import * as os from 'node:os';
 
 /**
  * Bundle the project using the local rollup.config.mjs and write the output
@@ -23,25 +24,33 @@ import jwt from 'jsonwebtoken';
  */
 export async function bundleToPath(): Promise<string> {
   // eslint-disable-next-line no-unsanitized/method
-  const { default: cfg } = await import(
+  const { default: createRollupConfig } = await import(
     pathToFileURL(path.resolve('rollup.config.mjs')).href
   );
 
-  const bundle = await rollup(cfg);
-  const base =
-    cfg.output?.dir ??
-    (cfg.output?.file ? path.dirname(cfg.output.file) : 'dist');
-  const dir = path.resolve(base, '.test-bundles');
-  fs.mkdirSync(dir, { recursive: true });
-  const file = path.join(dir, `bundle-${Date.now()}.cjs`);
+  const testConfig = createRollupConfig({
+    typescript: {
+      outDir: undefined,
+      declaration: false,
+      sourceMap: true,
+    },
+  });
 
+  const bundle = await rollup(testConfig);
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-bundle-'));
+  const outputFile = path.join(tempDir, `bundle-${Date.now()}.cjs`);
+
+  fs.copyFileSync(
+    path.join(process.cwd(), 'tsconfig.json'),
+    path.join(tempDir, 'tsconfig.json'),
+  );
   try {
-    await bundle.write({ ...(cfg.output ?? {}), file, format: 'cjs' });
+    await bundle.write({ ...testConfig.output, file: outputFile });
   } finally {
     await bundle.close();
   }
 
-  return file;
+  return outputFile;
 }
 
 /**
