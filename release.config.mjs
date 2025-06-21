@@ -24,6 +24,7 @@ export default {
           'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
       },
     ],
+    'semantic-release-major-tag',
   ],
   repositoryUrl: 'git+https://github.com/mridang/action-semantic-release.git',
 };
