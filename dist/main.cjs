@@ -297920,7 +297920,7 @@ function setupSshKey(deployKey) {
     if (!fs.existsSync(sshDir)) {
         fs.mkdirSync(sshDir, { recursive: true, mode: 0o700 });
     }
-    fs.writeFileSync(keyPath, deployKey, { mode: 0o600 });
+    fs.writeFileSync(keyPath, deployKey + '\n', { mode: 0o600 });
     try {
         childProcess.execSync(`ssh-keyscan github.com >> ${path.join(sshDir, 'known_hosts')} 2>/dev/null`, {
             stdio: 'pipe',
