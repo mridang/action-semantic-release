@@ -297894,6 +297894,61 @@ function getAllowForceInstall() {
     }
 }
 /**
+ * Retrieves the deploy key from the action's 'deploy-key' input.
+ *
+ * @returns The SSH deploy key or undefined if not provided.
+ */
+function getDeployKey() {
+    const key = coreExports.getInput('deploy-key').trim();
+    if (key) {
+        return key;
+    }
+    else {
+        return undefined;
+    }
+}
+/**
+ * Sets up SSH authentication using a deploy key.
+ *
+ * @param deployKey - The SSH private key content.
+ */
+function setupSshKey(deployKey) {
+    const home = process.env.HOME || os.homedir();
+    const sshDir = path.join(home, '.ssh');
+    const keyPath = path.join(sshDir, 'id_rsa');
+    const socketPath = '/tmp/ssh_agent.sock';
+    if (!fs.existsSync(sshDir)) {
+        fs.mkdirSync(sshDir, { recursive: true, mode: 0o700 });
+    }
+    fs.writeFileSync(keyPath, deployKey, { mode: 0o600 });
+    try {
+        childProcess.execSync(`ssh-keyscan github.com >> ${path.join(sshDir, 'known_hosts')} 2>/dev/null`, {
+            stdio: 'pipe',
+        });
+    }
+    catch (err) {
+        if (err instanceof Error) {
+            throw new Error(`Failed to add github.com to known_hosts: ${err.message}`);
+        }
+        throw new Error('Failed to add github.com to known_hosts');
+    }
+    process.env.SSH_AUTH_SOCK = socketPath;
+    try {
+        childProcess.execSync(`ssh-agent -a ${socketPath}`, { stdio: 'pipe' });
+        childProcess.execSync(`ssh-add ${keyPath}`, {
+            stdio: 'pipe',
+            env: { ...process.env, SSH_AUTH_SOCK: socketPath },
+        });
+        coreExports.info('SSH deploy key configured successfully');
+    }
+    catch (err) {
+        if (err instanceof Error) {
+            throw new Error(`Failed to set up SSH agent: ${err.message}`);
+        }
+        throw new Error('Failed to set up SSH agent');
+    }
+}
+/**
  * Sets the action's failure status with a given message.
  * In a JEST test environment, it throws an error instead of calling
  * `actionFailed`.
@@ -297921,6 +297976,12 @@ async function run(waiterFn, ghCtx = new contextExports.Context()) {
                 const githubToken = getGithubToken();
                 const workingDirectory = getWorkingDirectory();
                 const waitForChecks = getWaitForChecks();
+                const deployKey = getDeployKey();
+                if (deployKey) {
+                    coreExports.startGroup('Configuring SSH authentication');
+                    setupSshKey(deployKey);
+                    coreExports.endGroup();
+                }
                 const explorer = distExports$2.cosmiconfig('release', {
                     loaders: createLoaders(getAllowForceInstall()),
                 });
@@ -297955,6 +298016,7 @@ async function run(waiterFn, ghCtx = new contextExports.Context()) {
                         env: {
                             ...process.env,
                             GITHUB_TOKEN: githubToken,
+                            SSH_AUTH_SOCK: process.env.SSH_AUTH_SOCK,
                         },
                     });
                     coreExports.endGroup();
