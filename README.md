@@ -6,6 +6,7 @@ A GitHub Action that runs [semantic-release](https://semantic-release.gitbook.io
 
 - **Automated Plugin Installation**: Automatically installs `semantic-release` plugins defined in your declarative configuration files (e.g., `.json`, `.yaml`).
 - **Status Check Waiting**: Optionally waits for all required GitHub status checks to pass before executing `semantic-release`, preventing releases from being published prematurely.
+- **SSH Deploy Key Support**: Supports SSH-based authentication for Git operations using deploy keys, while still using tokens for GitHub API operations.
 - **Flexible Configuration**: Supports various `semantic-release` configuration file formats and allows you to specify a working directory.
 - **Detailed Output**: Provides clear logs and a summary of the published release version.
 
@@ -60,6 +61,7 @@ This workflow is now configured to trigger a release on any commit to `main` (or
 - `wait-for-checks` (optional, default: `'true'`): Whether to wait for all required status checks to pass before running `semantic-release`. Set to `'false'` to disable this.
 - `working-directory` (optional, default: `'.'`) : The directory to search for `semantic-release` configuration files.
 - `allow-force-install` (optional, default: `'false'`): If `'true'`, allows the action to overwrite an existing package.json file and forces npm to install dependencies using the `--force` flag. This can be used to resolve conflicting peer dependency issues but should be used with caution as it may lead to a broken installation.
+- `deploy-key` (optional): SSH private key for deploy key authentication. When provided, Git operations will use SSH instead of HTTPS. The `github-token` is still required for GitHub API operations.
 
 ## Outputs
 

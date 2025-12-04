@@ -37,6 +37,12 @@ inputs:
     required: false
     default: 'false'
 
+  deploy-key:
+    description: >
+      SSH private key for deploy key authentication. When provided, Git
+      operations will use SSH instead of HTTPS.
+    required: false
+
 runs:
   using: node24
   main: dist/main.cjs

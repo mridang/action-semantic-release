@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 // noinspection ES6PreferShortImport
 import { run } from '../src/index.js';
@@ -7,6 +7,7 @@ import { withTempDir } from './helpers/with-temp-dir.js';
 import { withGitRepo } from './helpers/with-git-repo.js';
 import { withEnvVars } from './helpers/with-env-vars.js';
 import { tmpdir } from 'node:os';
+import forge from 'node-forge';
 
 /**
  * A test helper to execute the main action script (`run`) within a
@@ -136,3 +137,54 @@ test.each(matrix)(
     )();
   },
 );
+
+test('configures SSH deploy key when provided', () => {
+  return withTempDir(
+    withGitRepo(
+      ['chore: init', 'feat: some feature'],
+      async ({ tmp, remoteUrl }) => {
+        writeFileSync(
+          join(tmp, '.releaserc.json'),
+          JSON.stringify({
+            branches: ['master'],
+            plugins: ['@semantic-release/commit-analyzer'],
+            repositoryUrl: remoteUrl,
+            dryRun: true,
+            ci: false,
+          }),
+        );
+
+        const keypair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
+        const privateKeyPem = forge.ssh.privateKeyToOpenSSH(keypair.privateKey);
+
+        await runAction(
+          {
+            'github-token': 'fake-token',
+            'working-directory': tmp,
+            'wait-for-checks': 'false',
+            'deploy-key': privateKeyPem,
+          },
+          {
+            GITHUB_EVENT_NAME: 'push',
+            GITHUB_REF: 'refs/heads/master',
+            GITHUB_SHA: 'abc123',
+            GITHUB_REPOSITORY: 'user/repo',
+            GITHUB_TOKEN: '*******',
+            GITHUB_ACTIONS: undefined,
+            HOME: tmp,
+          },
+        );
+
+        const sshDir = join(tmp, '.ssh');
+        const keyPath = join(sshDir, 'id_rsa');
+        const knownHostsPath = join(sshDir, 'known_hosts');
+
+        expect(existsSync(keyPath)).toBe(true);
+        expect(existsSync(knownHostsPath)).toBe(true);
+
+        const stats = statSync(keyPath);
+        expect(stats.mode & 0o777).toBe(0o600);
+      },
+    ),
+  )();
+});
