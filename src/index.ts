@@ -13,6 +13,10 @@ import semanticRelease, { Options, Result } from 'semantic-release';
 import { createLoaders } from './loaders.js';
 import { Context } from '@actions/github/lib/context.js';
 import waitForAllChecks from './waiter.js';
+import { mkdirSync, existsSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { execSync } from 'node:child_process';
+import { join } from 'node:path';
 
 /**
  * Retrieves the GitHub token from the action's 'github-token' input.
@@ -83,6 +87,70 @@ function getAllowForceInstall(): boolean {
 }
 
 /**
+ * Retrieves the deploy key from the action's 'deploy-key' input.
+ *
+ * @returns The SSH deploy key or undefined if not provided.
+ */
+function getDeployKey(): string | undefined {
+  const key = getInput('deploy-key').trim();
+  if (key) {
+    return key;
+  } else {
+    return undefined;
+  }
+}
+
+/**
+ * Sets up SSH authentication using a deploy key.
+ *
+ * @param deployKey - The SSH private key content.
+ */
+function setupSshKey(deployKey: string): void {
+  const home = process.env.HOME || homedir();
+  const sshDir = join(home, '.ssh');
+  const keyPath = join(sshDir, 'id_rsa');
+  const socketPath = '/tmp/ssh_agent.sock';
+
+  if (!existsSync(sshDir)) {
+    mkdirSync(sshDir, { recursive: true, mode: 0o700 });
+  }
+
+  writeFileSync(keyPath, deployKey, { mode: 0o600 });
+
+  try {
+    execSync(
+      `ssh-keyscan github.com >> ${join(sshDir, 'known_hosts')} 2>/dev/null`,
+      {
+        stdio: 'pipe',
+      },
+    );
+  } catch (err) {
+    if (err instanceof Error) {
+      throw new Error(
+        `Failed to add github.com to known_hosts: ${err.message}`,
+      );
+    }
+    throw new Error('Failed to add github.com to known_hosts');
+  }
+
+  process.env.SSH_AUTH_SOCK = socketPath;
+
+  try {
+    execSync(`ssh-agent -a ${socketPath}`, { stdio: 'pipe' });
+    execSync(`ssh-add ${keyPath}`, {
+      stdio: 'pipe',
+      env: { ...process.env, SSH_AUTH_SOCK: socketPath },
+    });
+    info('SSH deploy key configured successfully');
+  } catch (err) {
+    if (err instanceof Error) {
+      throw new Error(`Failed to set up SSH agent: ${err.message}`);
+    }
+    throw new Error('Failed to set up SSH agent');
+  }
+}
+
+/**
  * Sets the action's failure status with a given message.
  * In a JEST test environment, it throws an error instead of calling
  * `actionFailed`.
@@ -114,6 +182,13 @@ export async function run(
         const githubToken = getGithubToken();
         const workingDirectory = getWorkingDirectory();
         const waitForChecks = getWaitForChecks();
+        const deployKey = getDeployKey();
+
+        if (deployKey) {
+          startGroup('Configuring SSH authentication');
+          setupSshKey(deployKey);
+          endGroup();
+        }
 
         const explorer = cosmiconfig('release', {
           loaders: createLoaders(getAllowForceInstall()),
@@ -155,6 +230,7 @@ export async function run(
               env: {
                 ...process.env,
                 GITHUB_TOKEN: githubToken,
+                SSH_AUTH_SOCK: process.env.SSH_AUTH_SOCK,
               },
             },
           );
