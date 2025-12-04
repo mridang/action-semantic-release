@@ -115,7 +115,7 @@ function setupSshKey(deployKey: string): void {
     mkdirSync(sshDir, { recursive: true, mode: 0o700 });
   }
 
-  writeFileSync(keyPath, deployKey, { mode: 0o600 });
+  writeFileSync(keyPath, deployKey + '\n', { mode: 0o600 });
 
   try {
     execSync(
