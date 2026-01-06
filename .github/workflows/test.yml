@@ -65,7 +65,7 @@ jobs:
         run: npm run test
 
       - name: Generate coverage report
-        uses: mridang/action-test-reporter@v1.5.0
+        uses: mridang/action-test-reporter@feat/add-test-result-support
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          coverage-file: '.out/lcov.info'
+          results-path: '.out/junit.xml'
+          coverage-path: '.out/lcov.info'
