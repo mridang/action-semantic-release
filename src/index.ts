@@ -101,11 +101,38 @@ function getDeployKey(): string | undefined {
 }
 
 /**
+ * The default command executor used by {@link setupSshKey}. Tests can pass
+ * a different implementation to avoid invoking real `ssh-keyscan`,
+ * `ssh-agent`, or `ssh-add` binaries.
+ *
+ * @param command - The shell command to execute.
+ * @param options - Optional environment overrides for the command.
+ */
+export type SshCommandRunner = (
+  command: string,
+  options?: { env?: Record<string, string | undefined> },
+) => void;
+
+const defaultSshCommandRunner: SshCommandRunner = (command, options) => {
+  execSync(command, {
+    stdio: 'pipe',
+    env: options?.env ?? process.env,
+  });
+};
+
+/**
  * Sets up SSH authentication using a deploy key.
  *
  * @param deployKey - The SSH private key content.
+ * @param runCommand - The command runner used to invoke `ssh-keyscan`,
+ * `ssh-agent`, and `ssh-add`. Defaults to a wrapper around `execSync`;
+ * tests can swap this for a stub so the production logic can be
+ * exercised without requiring real SSH tooling on the host.
  */
-function setupSshKey(deployKey: string): void {
+export function setupSshKey(
+  deployKey: string,
+  runCommand: SshCommandRunner = defaultSshCommandRunner,
+): void {
   const home = process.env.HOME || homedir();
   const sshDir = join(home, '.ssh');
   const keyPath = join(sshDir, 'id_rsa');
@@ -118,11 +145,8 @@ function setupSshKey(deployKey: string): void {
   writeFileSync(keyPath, deployKey + '\n', { mode: 0o600 });
 
   try {
-    execSync(
+    runCommand(
       `ssh-keyscan github.com >> ${join(sshDir, 'known_hosts')} 2>/dev/null`,
-      {
-        stdio: 'pipe',
-      },
     );
   } catch (err) {
     if (err instanceof Error) {
@@ -136,9 +160,8 @@ function setupSshKey(deployKey: string): void {
   process.env.SSH_AUTH_SOCK = socketPath;
 
   try {
-    execSync(`ssh-agent -a ${socketPath}`, { stdio: 'pipe' });
-    execSync(`ssh-add ${keyPath}`, {
-      stdio: 'pipe',
+    runCommand(`ssh-agent -a ${socketPath}`);
+    runCommand(`ssh-add ${keyPath}`, {
       env: { ...process.env, SSH_AUTH_SOCK: socketPath },
     });
     info('SSH deploy key configured successfully');
@@ -172,6 +195,7 @@ function setFailed(message: string | Error): void {
 export async function run(
   waiterFn?: () => Promise<void>,
   ghCtx = new Context(),
+  sshCommandRunner: SshCommandRunner = defaultSshCommandRunner,
 ): Promise<string | void> {
   try {
     if (ghCtx.eventName === 'push') {
@@ -186,7 +210,7 @@ export async function run(
 
         if (deployKey) {
           startGroup('Configuring SSH authentication');
-          setupSshKey(deployKey);
+          setupSshKey(deployKey, sshCommandRunner);
           endGroup();
         }
 

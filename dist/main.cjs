@@ -297907,12 +297907,22 @@ function getDeployKey() {
         return undefined;
     }
 }
+const defaultSshCommandRunner = (command, options) => {
+    childProcess.execSync(command, {
+        stdio: 'pipe',
+        env: options?.env ?? process.env,
+    });
+};
 /**
  * Sets up SSH authentication using a deploy key.
  *
  * @param deployKey - The SSH private key content.
+ * @param runCommand - The command runner used to invoke `ssh-keyscan`,
+ * `ssh-agent`, and `ssh-add`. Defaults to a wrapper around `execSync`;
+ * tests can swap this for a stub so the production logic can be
+ * exercised without requiring real SSH tooling on the host.
  */
-function setupSshKey(deployKey) {
+function setupSshKey(deployKey, runCommand = defaultSshCommandRunner) {
     const home = process.env.HOME || os.homedir();
     const sshDir = path.join(home, '.ssh');
     const keyPath = path.join(sshDir, 'id_rsa');
@@ -297922,9 +297932,7 @@ function setupSshKey(deployKey) {
     }
     fs.writeFileSync(keyPath, deployKey + '\n', { mode: 0o600 });
     try {
-        childProcess.execSync(`ssh-keyscan github.com >> ${path.join(sshDir, 'known_hosts')} 2>/dev/null`, {
-            stdio: 'pipe',
-        });
+        runCommand(`ssh-keyscan github.com >> ${path.join(sshDir, 'known_hosts')} 2>/dev/null`);
     }
     catch (err) {
         if (err instanceof Error) {
@@ -297934,9 +297942,8 @@ function setupSshKey(deployKey) {
     }
     process.env.SSH_AUTH_SOCK = socketPath;
     try {
-        childProcess.execSync(`ssh-agent -a ${socketPath}`, { stdio: 'pipe' });
-        childProcess.execSync(`ssh-add ${keyPath}`, {
-            stdio: 'pipe',
+        runCommand(`ssh-agent -a ${socketPath}`);
+        runCommand(`ssh-add ${keyPath}`, {
             env: { ...process.env, SSH_AUTH_SOCK: socketPath },
         });
         coreExports.info('SSH deploy key configured successfully');
@@ -297968,7 +297975,7 @@ function setFailed(message) {
         coreExports.setFailed(message);
     }
 }
-async function run(waiterFn, ghCtx = new contextExports.Context()) {
+async function run(waiterFn, ghCtx = new contextExports.Context(), sshCommandRunner = defaultSshCommandRunner) {
     try {
         if (ghCtx.eventName === 'push') {
             if (ghCtx.ref.startsWith('refs/heads/') ||
@@ -297979,7 +297986,7 @@ async function run(waiterFn, ghCtx = new contextExports.Context()) {
                 const deployKey = getDeployKey();
                 if (deployKey) {
                     coreExports.startGroup('Configuring SSH authentication');
-                    setupSshKey(deployKey);
+                    setupSshKey(deployKey, sshCommandRunner);
                     coreExports.endGroup();
                 }
                 const explorer = distExports$2.cosmiconfig('release', {
