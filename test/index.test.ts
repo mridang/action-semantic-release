@@ -1,8 +1,16 @@
 import { expect } from '@jest/globals';
-import { mkdtempSync, writeFileSync, existsSync, statSync } from 'node:fs';
+import {
+  mkdtempSync,
+  writeFileSync,
+  existsSync,
+  statSync,
+  appendFileSync,
+  mkdirSync,
+} from 'node:fs';
 import { join } from 'node:path';
 // noinspection ES6PreferShortImport
-import { run } from '../src/index.js';
+import { run, type SshCommandRunner } from '../src/index.js';
+import { Context } from '@actions/github/lib/context.js';
 import { withTempDir } from './helpers/with-temp-dir.js';
 import { withGitRepo } from './helpers/with-git-repo.js';
 import { withEnvVars } from './helpers/with-env-vars.js';
@@ -29,6 +37,7 @@ async function runAction(
   inputs: Record<string, string>,
   extraEnv: Record<string, string | undefined> = {},
   waiterFn?: () => Promise<void>,
+  sshCommandRunner?: SshCommandRunner,
 ): Promise<string | void> {
   const summaryDir = mkdtempSync(join(tmpdir(), 'test-'));
   const summaryPath = join(summaryDir, 'summary.md');
@@ -50,7 +59,7 @@ async function runAction(
       GITHUB_STEP_SUMMARY: summaryPath,
       GITHUB_EVENT_PATH: eventPath,
     },
-    () => run(waiterFn),
+    () => run(waiterFn, new Context(), sshCommandRunner),
   );
   return await wrapped();
 }
@@ -157,6 +166,35 @@ test('configures SSH deploy key when provided', () => {
         const keypair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
         const privateKeyPem = forge.ssh.privateKeyToOpenSSH(keypair.privateKey);
 
+        const sshDir = join(tmp, '.ssh');
+        const keyPath = join(sshDir, 'id_rsa');
+        const knownHostsPath = join(sshDir, 'known_hosts');
+
+        const commands: string[] = [];
+        const sshCommandRunner: SshCommandRunner = (command) => {
+          commands.push(command);
+          if (command.startsWith('ssh-keyscan')) {
+            // Real ssh-keyscan would append host keys to known_hosts via
+            // shell redirection; emulate just the file-write side-effect
+            // so we can assert the action wires it up correctly without
+            // depending on the binary being installed.
+            if (!existsSync(sshDir)) {
+              mkdirSync(sshDir, { recursive: true, mode: 0o700 });
+            }
+            appendFileSync(knownHostsPath, 'github.com ssh-rsa AAAA-stub\n');
+            return;
+          }
+          if (
+            command.startsWith('ssh-agent') ||
+            command.startsWith('ssh-add')
+          ) {
+            // No-op: a real agent isn't available in CI/devbox shells, so
+            // we just record that the command was attempted.
+            return;
+          }
+          throw new Error(`Unexpected SSH command: ${command}`);
+        };
+
         await runAction(
           {
             'github-token': 'fake-token',
@@ -173,17 +211,23 @@ test('configures SSH deploy key when provided', () => {
             GITHUB_ACTIONS: undefined,
             HOME: tmp,
           },
+          undefined,
+          sshCommandRunner,
         );
-
-        const sshDir = join(tmp, '.ssh');
-        const keyPath = join(sshDir, 'id_rsa');
-        const knownHostsPath = join(sshDir, 'known_hosts');
 
         expect(existsSync(keyPath)).toBe(true);
         expect(existsSync(knownHostsPath)).toBe(true);
 
         const stats = statSync(keyPath);
         expect(stats.mode & 0o777).toBe(0o600);
+
+        expect(
+          commands.some((c) => c.startsWith('ssh-keyscan github.com')),
+        ).toBe(true);
+        expect(commands.some((c) => c.startsWith('ssh-agent'))).toBe(true);
+        expect(commands.some((c) => c.startsWith(`ssh-add ${keyPath}`))).toBe(
+          true,
+        );
       },
     ),
   )();
