@@ -19,7 +19,7 @@ const inlinePackageJsonPlugin = {
     }
 
     const requirePattern =
-      /require\((['"`])([-.\/\w]+?(?:package\.json|commitlint\.schema\.json))\1\)/g;
+      /require\((['"`])([-./\w]+?(?:package\.json|commitlint\.schema\.json))\1\)/g;
 
     const newCode = code.replace(
       requirePattern,
