@@ -27,7 +27,7 @@ inputs:
     description: >
       The directory to search for semantic-release configuration files.
     required: false
-    default: '.'
+    default: .
 
   allow-force-install:
     description: >
