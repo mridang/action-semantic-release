@@ -296448,13 +296448,30 @@ async function waitForAllChecks(ghCtx, token) {
     const deadline = Date.now() + CHECK_TIMEOUT_MS;
     coreExports.info(`Starting check run monitoring for ref ${ref}`);
     coreExports.debug(`Identifying self as job ID: '${selfIdentifier}'`);
+    const allowedEvents = new Set(['push', ghCtx.eventName]);
     while (Date.now() < deadline) {
-        const allRuns = await octokit.paginate(octokit.rest.checks.listForRef, {
+        const checkRuns = await octokit.paginate(octokit.rest.checks.listForRef, {
             owner,
             repo,
             ref,
             per_page: 100,
         });
+        // Scheduled and dynamic runs (e.g. Dependabot) attach to the latest commit
+        // of the default branch but are unrelated to the release being gated.
+        const excludedSuites = new Set();
+        try {
+            const workflowRuns = await octokit.paginate(octokit.rest.actions.listWorkflowRunsForRepo, { owner, repo, head_sha: ref, per_page: 100 });
+            for (const run of workflowRuns) {
+                if (!allowedEvents.has(run.event) && run.check_suite_id !== undefined) {
+                    excludedSuites.add(run.check_suite_id);
+                }
+            }
+        }
+        catch (error) {
+            coreExports.warning(`Could not list workflow runs (needs actions: read on private repositories), so checks from non-push runs are not excluded: ${error}`);
+        }
+        const allRuns = checkRuns.filter((run) => run.check_suite?.id === undefined ||
+            !excludedSuites.has(run.check_suite.id));
         const pendingRuns = allRuns.filter((run) => run.status !== 'completed');
         const selfIsPresentInPending = pendingRuns.some((run) => run.name === selfIdentifier);
         if (!selfIsPresentInPending && pendingRuns.length === 1) {
