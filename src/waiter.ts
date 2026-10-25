@@ -1,7 +1,7 @@
 /* eslint-disable testing-library/no-debugging-utils */
 import { Context } from '@actions/github/lib/context.js';
 import { getOctokit } from '@actions/github';
-import { debug, info } from '@actions/core';
+import { debug, info, warning } from '@actions/core';
 
 const CHECK_TIMEOUT_MS = 20 * 60 * 1000;
 const CHECK_INTERVAL_MS = 2 * 1000;
@@ -31,13 +31,38 @@ export default async function waitForAllChecks(
   info(`Starting check run monitoring for ref ${ref}`);
   debug(`Identifying self as job ID: '${selfIdentifier}'`);
 
+  const allowedEvents = new Set(['push', ghCtx.eventName]);
+
   while (Date.now() < deadline) {
-    const allRuns = await octokit.paginate(octokit.rest.checks.listForRef, {
+    const checkRuns = await octokit.paginate(octokit.rest.checks.listForRef, {
       owner,
       repo,
       ref,
       per_page: 100,
     });
+    // Scheduled and dynamic runs (e.g. Dependabot) attach to the latest commit
+    // of the default branch but are unrelated to the release being gated.
+    const excludedSuites = new Set<number>();
+    try {
+      const workflowRuns = await octokit.paginate(
+        octokit.rest.actions.listWorkflowRunsForRepo,
+        { owner, repo, head_sha: ref, per_page: 100 },
+      );
+      for (const run of workflowRuns) {
+        if (!allowedEvents.has(run.event) && run.check_suite_id !== undefined) {
+          excludedSuites.add(run.check_suite_id);
+        }
+      }
+    } catch (error) {
+      warning(
+        `Could not list workflow runs (needs actions: read on private repositories), so checks from non-push runs are not excluded: ${error}`,
+      );
+    }
+    const allRuns = checkRuns.filter(
+      (run) =>
+        run.check_suite?.id === undefined ||
+        !excludedSuites.has(run.check_suite.id),
+    );
 
     const pendingRuns = allRuns.filter((run) => run.status !== 'completed');
 
