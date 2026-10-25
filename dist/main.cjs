@@ -20,6 +20,21 @@ var node_stream = require('node:stream');
 var promises$1 = require('node:stream/promises');
 
 var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
+function _mergeNamespaces(n, m) {
+	m.forEach(function (e) {
+		e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
+			if (k !== 'default' && !(k in n)) {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(n, k, d.get ? d : {
+					enumerable: true,
+					get: function () { return e[k]; }
+				});
+			}
+		});
+	});
+	return Object.freeze(n);
+}
+
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function getDefaultExportFromCjs (x) {
@@ -27925,13 +27940,13 @@ function requireIdentifier () {
 	identifier.isIdentifierChar = isIdentifierChar;
 	identifier.isIdentifierName = isIdentifierName;
 	identifier.isIdentifierStart = isIdentifierStart;
-	let nonASCIIidentifierStartChars = "\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0370-\u0374\u0376\u0377\u037a-\u037d\u037f\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u048a-\u052f\u0531-\u0556\u0559\u0560-\u0588\u05d0-\u05ea\u05ef-\u05f2\u0620-\u064a\u066e\u066f\u0671-\u06d3\u06d5\u06e5\u06e6\u06ee\u06ef\u06fa-\u06fc\u06ff\u0710\u0712-\u072f\u074d-\u07a5\u07b1\u07ca-\u07ea\u07f4\u07f5\u07fa\u0800-\u0815\u081a\u0824\u0828\u0840-\u0858\u0860-\u086a\u0870-\u0887\u0889-\u088e\u08a0-\u08c9\u0904-\u0939\u093d\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098c\u098f\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bd\u09ce\u09dc\u09dd\u09df-\u09e1\u09f0\u09f1\u09fc\u0a05-\u0a0a\u0a0f\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32\u0a33\u0a35\u0a36\u0a38\u0a39\u0a59-\u0a5c\u0a5e\u0a72-\u0a74\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2\u0ab3\u0ab5-\u0ab9\u0abd\u0ad0\u0ae0\u0ae1\u0af9\u0b05-\u0b0c\u0b0f\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32\u0b33\u0b35-\u0b39\u0b3d\u0b5c\u0b5d\u0b5f-\u0b61\u0b71\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99\u0b9a\u0b9c\u0b9e\u0b9f\u0ba3\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bd0\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d\u0c58-\u0c5a\u0c5d\u0c60\u0c61\u0c80\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbd\u0cdd\u0cde\u0ce0\u0ce1\u0cf1\u0cf2\u0d04-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d\u0d4e\u0d54-\u0d56\u0d5f-\u0d61\u0d7a-\u0d7f\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0e01-\u0e30\u0e32\u0e33\u0e40-\u0e46\u0e81\u0e82\u0e84\u0e86-\u0e8a\u0e8c-\u0ea3\u0ea5\u0ea7-\u0eb0\u0eb2\u0eb3\u0ebd\u0ec0-\u0ec4\u0ec6\u0edc-\u0edf\u0f00\u0f40-\u0f47\u0f49-\u0f6c\u0f88-\u0f8c\u1000-\u102a\u103f\u1050-\u1055\u105a-\u105d\u1061\u1065\u1066\u106e-\u1070\u1075-\u1081\u108e\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u1380-\u138f\u13a0-\u13f5\u13f8-\u13fd\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u1711\u171f-\u1731\u1740-\u1751\u1760-\u176c\u176e-\u1770\u1780-\u17b3\u17d7\u17dc\u1820-\u1878\u1880-\u18a8\u18aa\u18b0-\u18f5\u1900-\u191e\u1950-\u196d\u1970-\u1974\u1980-\u19ab\u19b0-\u19c9\u1a00-\u1a16\u1a20-\u1a54\u1aa7\u1b05-\u1b33\u1b45-\u1b4c\u1b83-\u1ba0\u1bae\u1baf\u1bba-\u1be5\u1c00-\u1c23\u1c4d-\u1c4f\u1c5a-\u1c7d\u1c80-\u1c8a\u1c90-\u1cba\u1cbd-\u1cbf\u1ce9-\u1cec\u1cee-\u1cf3\u1cf5\u1cf6\u1cfa\u1d00-\u1dbf\u1e00-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2071\u207f\u2090-\u209c\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2ce4\u2ceb-\u2cee\u2cf2\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d80-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303c\u3041-\u3096\u309b-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312f\u3131-\u318e\u31a0-\u31bf\u31f0-\u31ff\u3400-\u4dbf\u4e00-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua61f\ua62a\ua62b\ua640-\ua66e\ua67f-\ua69d\ua6a0-\ua6ef\ua717-\ua71f\ua722-\ua788\ua78b-\ua7cd\ua7d0\ua7d1\ua7d3\ua7d5-\ua7dc\ua7f2-\ua801\ua803-\ua805\ua807-\ua80a\ua80c-\ua822\ua840-\ua873\ua882-\ua8b3\ua8f2-\ua8f7\ua8fb\ua8fd\ua8fe\ua90a-\ua925\ua930-\ua946\ua960-\ua97c\ua984-\ua9b2\ua9cf\ua9e0-\ua9e4\ua9e6-\ua9ef\ua9fa-\ua9fe\uaa00-\uaa28\uaa40-\uaa42\uaa44-\uaa4b\uaa60-\uaa76\uaa7a\uaa7e-\uaaaf\uaab1\uaab5\uaab6\uaab9-\uaabd\uaac0\uaac2\uaadb-\uaadd\uaae0-\uaaea\uaaf2-\uaaf4\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab69\uab70-\uabe2\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d\ufb1f-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40\ufb41\ufb43\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe70-\ufe74\ufe76-\ufefc\uff21-\uff3a\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc";
-	let nonASCIIidentifierChars = "\xb7\u0300-\u036f\u0387\u0483-\u0487\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u0669\u0670\u06d6-\u06dc\u06df-\u06e4\u06e7\u06e8\u06ea-\u06ed\u06f0-\u06f9\u0711\u0730-\u074a\u07a6-\u07b0\u07c0-\u07c9\u07eb-\u07f3\u07fd\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0859-\u085b\u0897-\u089f\u08ca-\u08e1\u08e3-\u0903\u093a-\u093c\u093e-\u094f\u0951-\u0957\u0962\u0963\u0966-\u096f\u0981-\u0983\u09bc\u09be-\u09c4\u09c7\u09c8\u09cb-\u09cd\u09d7\u09e2\u09e3\u09e6-\u09ef\u09fe\u0a01-\u0a03\u0a3c\u0a3e-\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a66-\u0a71\u0a75\u0a81-\u0a83\u0abc\u0abe-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ae2\u0ae3\u0ae6-\u0aef\u0afa-\u0aff\u0b01-\u0b03\u0b3c\u0b3e-\u0b44\u0b47\u0b48\u0b4b-\u0b4d\u0b55-\u0b57\u0b62\u0b63\u0b66-\u0b6f\u0b82\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd7\u0be6-\u0bef\u0c00-\u0c04\u0c3c\u0c3e-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0c66-\u0c6f\u0c81-\u0c83\u0cbc\u0cbe-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0ce6-\u0cef\u0cf3\u0d00-\u0d03\u0d3b\u0d3c\u0d3e-\u0d44\u0d46-\u0d48\u0d4a-\u0d4d\u0d57\u0d62\u0d63\u0d66-\u0d6f\u0d81-\u0d83\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2\u0df3\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0e50-\u0e59\u0eb1\u0eb4-\u0ebc\u0ec8-\u0ece\u0ed0-\u0ed9\u0f18\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e\u0f3f\u0f71-\u0f84\u0f86\u0f87\u0f8d-\u0f97\u0f99-\u0fbc\u0fc6\u102b-\u103e\u1040-\u1049\u1056-\u1059\u105e-\u1060\u1062-\u1064\u1067-\u106d\u1071-\u1074\u1082-\u108d\u108f-\u109d\u135d-\u135f\u1369-\u1371\u1712-\u1715\u1732-\u1734\u1752\u1753\u1772\u1773\u17b4-\u17d3\u17dd\u17e0-\u17e9\u180b-\u180d\u180f-\u1819\u18a9\u1920-\u192b\u1930-\u193b\u1946-\u194f\u19d0-\u19da\u1a17-\u1a1b\u1a55-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1ab0-\u1abd\u1abf-\u1ace\u1b00-\u1b04\u1b34-\u1b44\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1b82\u1ba1-\u1bad\u1bb0-\u1bb9\u1be6-\u1bf3\u1c24-\u1c37\u1c40-\u1c49\u1c50-\u1c59\u1cd0-\u1cd2\u1cd4-\u1ce8\u1ced\u1cf4\u1cf7-\u1cf9\u1dc0-\u1dff\u200c\u200d\u203f\u2040\u2054\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2cef-\u2cf1\u2d7f\u2de0-\u2dff\u302a-\u302f\u3099\u309a\u30fb\ua620-\ua629\ua66f\ua674-\ua67d\ua69e\ua69f\ua6f0\ua6f1\ua802\ua806\ua80b\ua823-\ua827\ua82c\ua880\ua881\ua8b4-\ua8c5\ua8d0-\ua8d9\ua8e0-\ua8f1\ua8ff-\ua909\ua926-\ua92d\ua947-\ua953\ua980-\ua983\ua9b3-\ua9c0\ua9d0-\ua9d9\ua9e5\ua9f0-\ua9f9\uaa29-\uaa36\uaa43\uaa4c\uaa4d\uaa50-\uaa59\uaa7b-\uaa7d\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uaaeb-\uaaef\uaaf5\uaaf6\uabe3-\uabea\uabec\uabed\uabf0-\uabf9\ufb1e\ufe00-\ufe0f\ufe20-\ufe2f\ufe33\ufe34\ufe4d-\ufe4f\uff10-\uff19\uff3f\uff65";
+	let nonASCIIidentifierStartChars = "\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0370-\u0374\u0376\u0377\u037a-\u037d\u037f\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u048a-\u052f\u0531-\u0556\u0559\u0560-\u0588\u05d0-\u05ea\u05ef-\u05f2\u0620-\u064a\u066e\u066f\u0671-\u06d3\u06d5\u06e5\u06e6\u06ee\u06ef\u06fa-\u06fc\u06ff\u0710\u0712-\u072f\u074d-\u07a5\u07b1\u07ca-\u07ea\u07f4\u07f5\u07fa\u0800-\u0815\u081a\u0824\u0828\u0840-\u0858\u0860-\u086a\u0870-\u0887\u0889-\u088f\u08a0-\u08c9\u0904-\u0939\u093d\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098c\u098f\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bd\u09ce\u09dc\u09dd\u09df-\u09e1\u09f0\u09f1\u09fc\u0a05-\u0a0a\u0a0f\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32\u0a33\u0a35\u0a36\u0a38\u0a39\u0a59-\u0a5c\u0a5e\u0a72-\u0a74\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2\u0ab3\u0ab5-\u0ab9\u0abd\u0ad0\u0ae0\u0ae1\u0af9\u0b05-\u0b0c\u0b0f\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32\u0b33\u0b35-\u0b39\u0b3d\u0b5c\u0b5d\u0b5f-\u0b61\u0b71\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99\u0b9a\u0b9c\u0b9e\u0b9f\u0ba3\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bd0\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d\u0c58-\u0c5a\u0c5c\u0c5d\u0c60\u0c61\u0c80\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbd\u0cdc-\u0cde\u0ce0\u0ce1\u0cf1\u0cf2\u0d04-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d\u0d4e\u0d54-\u0d56\u0d5f-\u0d61\u0d7a-\u0d7f\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0e01-\u0e30\u0e32\u0e33\u0e40-\u0e46\u0e81\u0e82\u0e84\u0e86-\u0e8a\u0e8c-\u0ea3\u0ea5\u0ea7-\u0eb0\u0eb2\u0eb3\u0ebd\u0ec0-\u0ec4\u0ec6\u0edc-\u0edf\u0f00\u0f40-\u0f47\u0f49-\u0f6c\u0f88-\u0f8c\u1000-\u102a\u103f\u1050-\u1055\u105a-\u105d\u1061\u1065\u1066\u106e-\u1070\u1075-\u1081\u108e\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u1380-\u138f\u13a0-\u13f5\u13f8-\u13fd\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u1711\u171f-\u1731\u1740-\u1751\u1760-\u176c\u176e-\u1770\u1780-\u17b3\u17d7\u17dc\u1820-\u1878\u1880-\u18a8\u18aa\u18b0-\u18f5\u1900-\u191e\u1950-\u196d\u1970-\u1974\u1980-\u19ab\u19b0-\u19c9\u1a00-\u1a16\u1a20-\u1a54\u1aa7\u1b05-\u1b33\u1b45-\u1b4c\u1b83-\u1ba0\u1bae\u1baf\u1bba-\u1be5\u1c00-\u1c23\u1c4d-\u1c4f\u1c5a-\u1c7d\u1c80-\u1c8a\u1c90-\u1cba\u1cbd-\u1cbf\u1ce9-\u1cec\u1cee-\u1cf3\u1cf5\u1cf6\u1cfa\u1d00-\u1dbf\u1e00-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2071\u207f\u2090-\u209c\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2ce4\u2ceb-\u2cee\u2cf2\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d80-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303c\u3041-\u3096\u309b-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312f\u3131-\u318e\u31a0-\u31bf\u31f0-\u31ff\u3400-\u4dbf\u4e00-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua61f\ua62a\ua62b\ua640-\ua66e\ua67f-\ua69d\ua6a0-\ua6ef\ua717-\ua71f\ua722-\ua788\ua78b-\ua7dc\ua7f1-\ua801\ua803-\ua805\ua807-\ua80a\ua80c-\ua822\ua840-\ua873\ua882-\ua8b3\ua8f2-\ua8f7\ua8fb\ua8fd\ua8fe\ua90a-\ua925\ua930-\ua946\ua960-\ua97c\ua984-\ua9b2\ua9cf\ua9e0-\ua9e4\ua9e6-\ua9ef\ua9fa-\ua9fe\uaa00-\uaa28\uaa40-\uaa42\uaa44-\uaa4b\uaa60-\uaa76\uaa7a\uaa7e-\uaaaf\uaab1\uaab5\uaab6\uaab9-\uaabd\uaac0\uaac2\uaadb-\uaadd\uaae0-\uaaea\uaaf2-\uaaf4\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab69\uab70-\uabe2\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d\ufb1f-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40\ufb41\ufb43\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe70-\ufe74\ufe76-\ufefc\uff21-\uff3a\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc";
+	let nonASCIIidentifierChars = "\xb7\u0300-\u036f\u0387\u0483-\u0487\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u0669\u0670\u06d6-\u06dc\u06df-\u06e4\u06e7\u06e8\u06ea-\u06ed\u06f0-\u06f9\u0711\u0730-\u074a\u07a6-\u07b0\u07c0-\u07c9\u07eb-\u07f3\u07fd\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0859-\u085b\u0897-\u089f\u08ca-\u08e1\u08e3-\u0903\u093a-\u093c\u093e-\u094f\u0951-\u0957\u0962\u0963\u0966-\u096f\u0981-\u0983\u09bc\u09be-\u09c4\u09c7\u09c8\u09cb-\u09cd\u09d7\u09e2\u09e3\u09e6-\u09ef\u09fe\u0a01-\u0a03\u0a3c\u0a3e-\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a66-\u0a71\u0a75\u0a81-\u0a83\u0abc\u0abe-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ae2\u0ae3\u0ae6-\u0aef\u0afa-\u0aff\u0b01-\u0b03\u0b3c\u0b3e-\u0b44\u0b47\u0b48\u0b4b-\u0b4d\u0b55-\u0b57\u0b62\u0b63\u0b66-\u0b6f\u0b82\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd7\u0be6-\u0bef\u0c00-\u0c04\u0c3c\u0c3e-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0c66-\u0c6f\u0c81-\u0c83\u0cbc\u0cbe-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0ce6-\u0cef\u0cf3\u0d00-\u0d03\u0d3b\u0d3c\u0d3e-\u0d44\u0d46-\u0d48\u0d4a-\u0d4d\u0d57\u0d62\u0d63\u0d66-\u0d6f\u0d81-\u0d83\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2\u0df3\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0e50-\u0e59\u0eb1\u0eb4-\u0ebc\u0ec8-\u0ece\u0ed0-\u0ed9\u0f18\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e\u0f3f\u0f71-\u0f84\u0f86\u0f87\u0f8d-\u0f97\u0f99-\u0fbc\u0fc6\u102b-\u103e\u1040-\u1049\u1056-\u1059\u105e-\u1060\u1062-\u1064\u1067-\u106d\u1071-\u1074\u1082-\u108d\u108f-\u109d\u135d-\u135f\u1369-\u1371\u1712-\u1715\u1732-\u1734\u1752\u1753\u1772\u1773\u17b4-\u17d3\u17dd\u17e0-\u17e9\u180b-\u180d\u180f-\u1819\u18a9\u1920-\u192b\u1930-\u193b\u1946-\u194f\u19d0-\u19da\u1a17-\u1a1b\u1a55-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1ab0-\u1abd\u1abf-\u1add\u1ae0-\u1aeb\u1b00-\u1b04\u1b34-\u1b44\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1b82\u1ba1-\u1bad\u1bb0-\u1bb9\u1be6-\u1bf3\u1c24-\u1c37\u1c40-\u1c49\u1c50-\u1c59\u1cd0-\u1cd2\u1cd4-\u1ce8\u1ced\u1cf4\u1cf7-\u1cf9\u1dc0-\u1dff\u200c\u200d\u203f\u2040\u2054\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2cef-\u2cf1\u2d7f\u2de0-\u2dff\u302a-\u302f\u3099\u309a\u30fb\ua620-\ua629\ua66f\ua674-\ua67d\ua69e\ua69f\ua6f0\ua6f1\ua802\ua806\ua80b\ua823-\ua827\ua82c\ua880\ua881\ua8b4-\ua8c5\ua8d0-\ua8d9\ua8e0-\ua8f1\ua8ff-\ua909\ua926-\ua92d\ua947-\ua953\ua980-\ua983\ua9b3-\ua9c0\ua9d0-\ua9d9\ua9e5\ua9f0-\ua9f9\uaa29-\uaa36\uaa43\uaa4c\uaa4d\uaa50-\uaa59\uaa7b-\uaa7d\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uaaeb-\uaaef\uaaf5\uaaf6\uabe3-\uabea\uabec\uabed\uabf0-\uabf9\ufb1e\ufe00-\ufe0f\ufe20-\ufe2f\ufe33\ufe34\ufe4d-\ufe4f\uff10-\uff19\uff3f\uff65";
 	const nonASCIIidentifierStart = new RegExp("[" + nonASCIIidentifierStartChars + "]");
 	const nonASCIIidentifier = new RegExp("[" + nonASCIIidentifierStartChars + nonASCIIidentifierChars + "]");
 	nonASCIIidentifierStartChars = nonASCIIidentifierChars = null;
-	const astralIdentifierStartCodes = [0, 11, 2, 25, 2, 18, 2, 1, 2, 14, 3, 13, 35, 122, 70, 52, 268, 28, 4, 48, 48, 31, 14, 29, 6, 37, 11, 29, 3, 35, 5, 7, 2, 4, 43, 157, 19, 35, 5, 35, 5, 39, 9, 51, 13, 10, 2, 14, 2, 6, 2, 1, 2, 10, 2, 14, 2, 6, 2, 1, 4, 51, 13, 310, 10, 21, 11, 7, 25, 5, 2, 41, 2, 8, 70, 5, 3, 0, 2, 43, 2, 1, 4, 0, 3, 22, 11, 22, 10, 30, 66, 18, 2, 1, 11, 21, 11, 25, 71, 55, 7, 1, 65, 0, 16, 3, 2, 2, 2, 28, 43, 28, 4, 28, 36, 7, 2, 27, 28, 53, 11, 21, 11, 18, 14, 17, 111, 72, 56, 50, 14, 50, 14, 35, 39, 27, 10, 22, 251, 41, 7, 1, 17, 2, 60, 28, 11, 0, 9, 21, 43, 17, 47, 20, 28, 22, 13, 52, 58, 1, 3, 0, 14, 44, 33, 24, 27, 35, 30, 0, 3, 0, 9, 34, 4, 0, 13, 47, 15, 3, 22, 0, 2, 0, 36, 17, 2, 24, 20, 1, 64, 6, 2, 0, 2, 3, 2, 14, 2, 9, 8, 46, 39, 7, 3, 1, 3, 21, 2, 6, 2, 1, 2, 4, 4, 0, 19, 0, 13, 4, 31, 9, 2, 0, 3, 0, 2, 37, 2, 0, 26, 0, 2, 0, 45, 52, 19, 3, 21, 2, 31, 47, 21, 1, 2, 0, 185, 46, 42, 3, 37, 47, 21, 0, 60, 42, 14, 0, 72, 26, 38, 6, 186, 43, 117, 63, 32, 7, 3, 0, 3, 7, 2, 1, 2, 23, 16, 0, 2, 0, 95, 7, 3, 38, 17, 0, 2, 0, 29, 0, 11, 39, 8, 0, 22, 0, 12, 45, 20, 0, 19, 72, 200, 32, 32, 8, 2, 36, 18, 0, 50, 29, 113, 6, 2, 1, 2, 37, 22, 0, 26, 5, 2, 1, 2, 31, 15, 0, 328, 18, 16, 0, 2, 12, 2, 33, 125, 0, 80, 921, 103, 110, 18, 195, 2637, 96, 16, 1071, 18, 5, 26, 3994, 6, 582, 6842, 29, 1763, 568, 8, 30, 18, 78, 18, 29, 19, 47, 17, 3, 32, 20, 6, 18, 433, 44, 212, 63, 129, 74, 6, 0, 67, 12, 65, 1, 2, 0, 29, 6135, 9, 1237, 42, 9, 8936, 3, 2, 6, 2, 1, 2, 290, 16, 0, 30, 2, 3, 0, 15, 3, 9, 395, 2309, 106, 6, 12, 4, 8, 8, 9, 5991, 84, 2, 70, 2, 1, 3, 0, 3, 1, 3, 3, 2, 11, 2, 0, 2, 6, 2, 64, 2, 3, 3, 7, 2, 6, 2, 27, 2, 3, 2, 4, 2, 0, 4, 6, 2, 339, 3, 24, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 7, 1845, 30, 7, 5, 262, 61, 147, 44, 11, 6, 17, 0, 322, 29, 19, 43, 485, 27, 229, 29, 3, 0, 496, 6, 2, 3, 2, 1, 2, 14, 2, 196, 60, 67, 8, 0, 1205, 3, 2, 26, 2, 1, 2, 0, 3, 0, 2, 9, 2, 3, 2, 0, 2, 0, 7, 0, 5, 0, 2, 0, 2, 0, 2, 2, 2, 1, 2, 0, 3, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 1, 2, 0, 3, 3, 2, 6, 2, 3, 2, 3, 2, 0, 2, 9, 2, 16, 6, 2, 2, 4, 2, 16, 4421, 42719, 33, 4153, 7, 221, 3, 5761, 15, 7472, 16, 621, 2467, 541, 1507, 4938, 6, 4191];
-	const astralIdentifierCodes = [509, 0, 227, 0, 150, 4, 294, 9, 1368, 2, 2, 1, 6, 3, 41, 2, 5, 0, 166, 1, 574, 3, 9, 9, 7, 9, 32, 4, 318, 1, 80, 3, 71, 10, 50, 3, 123, 2, 54, 14, 32, 10, 3, 1, 11, 3, 46, 10, 8, 0, 46, 9, 7, 2, 37, 13, 2, 9, 6, 1, 45, 0, 13, 2, 49, 13, 9, 3, 2, 11, 83, 11, 7, 0, 3, 0, 158, 11, 6, 9, 7, 3, 56, 1, 2, 6, 3, 1, 3, 2, 10, 0, 11, 1, 3, 6, 4, 4, 68, 8, 2, 0, 3, 0, 2, 3, 2, 4, 2, 0, 15, 1, 83, 17, 10, 9, 5, 0, 82, 19, 13, 9, 214, 6, 3, 8, 28, 1, 83, 16, 16, 9, 82, 12, 9, 9, 7, 19, 58, 14, 5, 9, 243, 14, 166, 9, 71, 5, 2, 1, 3, 3, 2, 0, 2, 1, 13, 9, 120, 6, 3, 6, 4, 0, 29, 9, 41, 6, 2, 3, 9, 0, 10, 10, 47, 15, 343, 9, 54, 7, 2, 7, 17, 9, 57, 21, 2, 13, 123, 5, 4, 0, 2, 1, 2, 6, 2, 0, 9, 9, 49, 4, 2, 1, 2, 4, 9, 9, 330, 3, 10, 1, 2, 0, 49, 6, 4, 4, 14, 10, 5350, 0, 7, 14, 11465, 27, 2343, 9, 87, 9, 39, 4, 60, 6, 26, 9, 535, 9, 470, 0, 2, 54, 8, 3, 82, 0, 12, 1, 19628, 1, 4178, 9, 519, 45, 3, 22, 543, 4, 4, 5, 9, 7, 3, 6, 31, 3, 149, 2, 1418, 49, 513, 54, 5, 49, 9, 0, 15, 0, 23, 4, 2, 14, 1361, 6, 2, 16, 3, 6, 2, 1, 2, 4, 101, 0, 161, 6, 10, 9, 357, 0, 62, 13, 499, 13, 245, 1, 2, 9, 726, 6, 110, 6, 6, 9, 4759, 9, 787719, 239];
+	const astralIdentifierStartCodes = [0, 11, 2, 25, 2, 18, 2, 1, 2, 14, 3, 13, 35, 122, 70, 52, 268, 28, 4, 48, 48, 31, 14, 29, 6, 37, 11, 29, 3, 35, 5, 7, 2, 4, 43, 157, 19, 35, 5, 35, 5, 39, 9, 51, 13, 10, 2, 14, 2, 6, 2, 1, 2, 10, 2, 14, 2, 6, 2, 1, 4, 51, 13, 310, 10, 21, 11, 7, 25, 5, 2, 41, 2, 8, 70, 5, 3, 0, 2, 43, 2, 1, 4, 0, 3, 22, 11, 22, 10, 30, 66, 18, 2, 1, 11, 21, 11, 25, 7, 25, 39, 55, 7, 1, 65, 0, 16, 3, 2, 2, 2, 28, 43, 28, 4, 28, 36, 7, 2, 27, 28, 53, 11, 21, 11, 18, 14, 17, 111, 72, 56, 50, 14, 50, 14, 35, 39, 27, 10, 22, 251, 41, 7, 1, 17, 5, 57, 28, 11, 0, 9, 21, 43, 17, 47, 20, 28, 22, 13, 52, 58, 1, 3, 0, 14, 44, 33, 24, 27, 35, 30, 0, 3, 0, 9, 34, 4, 0, 13, 47, 15, 3, 22, 0, 2, 0, 36, 17, 2, 24, 20, 1, 64, 6, 2, 0, 2, 3, 2, 14, 2, 9, 8, 46, 39, 7, 3, 1, 3, 21, 2, 6, 2, 1, 2, 4, 4, 0, 19, 0, 13, 4, 31, 9, 2, 0, 3, 0, 2, 37, 2, 0, 26, 0, 2, 0, 45, 52, 19, 3, 21, 2, 31, 47, 21, 1, 2, 0, 185, 46, 42, 3, 37, 47, 21, 0, 60, 42, 14, 0, 72, 26, 38, 6, 186, 43, 117, 63, 32, 7, 3, 0, 3, 7, 2, 1, 2, 23, 16, 0, 2, 0, 95, 7, 3, 38, 17, 0, 2, 0, 29, 0, 11, 39, 8, 0, 22, 0, 12, 45, 20, 0, 19, 72, 200, 32, 32, 8, 2, 36, 18, 0, 50, 29, 113, 6, 2, 1, 2, 37, 22, 0, 26, 5, 2, 1, 2, 31, 15, 0, 24, 43, 261, 18, 16, 0, 2, 12, 2, 33, 125, 0, 80, 921, 103, 110, 18, 195, 2637, 96, 16, 1071, 18, 5, 26, 3994, 6, 582, 6842, 29, 1763, 568, 8, 30, 18, 78, 18, 29, 19, 47, 17, 3, 32, 20, 6, 18, 433, 44, 212, 63, 33, 24, 3, 24, 45, 74, 6, 0, 67, 12, 65, 1, 2, 0, 15, 4, 10, 7381, 42, 31, 98, 114, 8702, 3, 2, 6, 2, 1, 2, 290, 16, 0, 30, 2, 3, 0, 15, 3, 9, 395, 2309, 106, 6, 12, 4, 8, 8, 9, 5991, 84, 2, 70, 2, 1, 3, 0, 3, 1, 3, 3, 2, 11, 2, 0, 2, 6, 2, 64, 2, 3, 3, 7, 2, 6, 2, 27, 2, 3, 2, 4, 2, 0, 4, 6, 2, 339, 3, 24, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 7, 1845, 30, 7, 5, 262, 61, 147, 44, 11, 6, 17, 0, 322, 29, 19, 43, 485, 27, 229, 29, 3, 0, 208, 30, 2, 2, 2, 1, 2, 6, 3, 4, 10, 1, 225, 6, 2, 3, 2, 1, 2, 14, 2, 196, 60, 67, 8, 0, 1205, 3, 2, 26, 2, 1, 2, 0, 3, 0, 2, 9, 2, 3, 2, 0, 2, 0, 7, 0, 5, 0, 2, 0, 2, 0, 2, 2, 2, 1, 2, 0, 3, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 1, 2, 0, 3, 3, 2, 6, 2, 3, 2, 3, 2, 0, 2, 9, 2, 16, 6, 2, 2, 4, 2, 16, 4421, 42719, 33, 4381, 3, 5773, 3, 7472, 16, 621, 2467, 541, 1507, 4938, 6, 8489];
+	const astralIdentifierCodes = [509, 0, 227, 0, 150, 4, 294, 9, 1368, 2, 2, 1, 6, 3, 41, 2, 5, 0, 166, 1, 574, 3, 9, 9, 7, 9, 32, 4, 318, 1, 78, 5, 71, 10, 50, 3, 123, 2, 54, 14, 32, 10, 3, 1, 11, 3, 46, 10, 8, 0, 46, 9, 7, 2, 37, 13, 2, 9, 6, 1, 45, 0, 13, 2, 49, 13, 9, 3, 2, 11, 83, 11, 7, 0, 3, 0, 158, 11, 6, 9, 7, 3, 56, 1, 2, 6, 3, 1, 3, 2, 10, 0, 11, 1, 3, 6, 4, 4, 68, 8, 2, 0, 3, 0, 2, 3, 2, 4, 2, 0, 15, 1, 83, 17, 10, 9, 5, 0, 82, 19, 13, 9, 214, 6, 3, 8, 28, 1, 83, 16, 16, 9, 82, 12, 9, 9, 7, 19, 58, 14, 5, 9, 243, 14, 166, 9, 71, 5, 2, 1, 3, 3, 2, 0, 2, 1, 13, 9, 120, 6, 3, 6, 4, 0, 29, 9, 41, 6, 2, 3, 9, 0, 10, 10, 47, 15, 199, 7, 137, 9, 54, 7, 2, 7, 17, 9, 57, 21, 2, 13, 123, 5, 4, 0, 2, 1, 2, 6, 2, 0, 9, 9, 49, 4, 2, 1, 2, 4, 9, 9, 55, 9, 266, 3, 10, 1, 2, 0, 49, 6, 4, 4, 14, 10, 5350, 0, 7, 14, 11465, 27, 2343, 9, 87, 9, 39, 4, 60, 6, 26, 9, 535, 9, 470, 0, 2, 54, 8, 3, 82, 0, 12, 1, 19628, 1, 4178, 9, 519, 45, 3, 22, 543, 4, 4, 5, 9, 7, 3, 6, 31, 3, 149, 2, 1418, 49, 513, 54, 5, 49, 9, 0, 15, 0, 23, 4, 2, 14, 1361, 6, 2, 16, 3, 6, 2, 1, 2, 4, 101, 0, 161, 6, 10, 9, 357, 0, 62, 13, 499, 13, 245, 1, 2, 9, 233, 0, 3, 0, 8, 1, 6, 0, 475, 6, 110, 6, 6, 9, 4759, 9, 787719, 239];
 	function isInAstralSet(code, set) {
 	  let pos = 0x10000;
 	  for (let i = 0, length = set.length; i < length; i += 2) {
@@ -28144,39 +28159,39 @@ function requireLib$5 () {
 	const NEWLINE$1 = /\r\n|[\n\r\u2028\u2029]/;
 	const BRACKET = /^[()[\]{}]$/;
 	let tokenize;
-	{
-	  const JSX_TAG = /^[a-z][\w-]*$/i;
-	  const getTokenType = function (token, offset, text) {
-	    if (token.type === "name") {
-	      if (helperValidatorIdentifier.isKeyword(token.value) || helperValidatorIdentifier.isStrictReservedWord(token.value, true) || sometimesKeywords.has(token.value)) {
-	        return "keyword";
-	      }
-	      if (JSX_TAG.test(token.value) && (text[offset - 1] === "<" || text.slice(offset - 2, offset) === "</")) {
-	        return "jsxIdentifier";
-	      }
-	      if (token.value[0] !== token.value[0].toLowerCase()) {
-	        return "capitalized";
-	      }
+	const JSX_TAG = /^[a-z][\w-]*$/i;
+	const getTokenType = function (token, offset, text) {
+	  if (token.type === "name") {
+	    const tokenValue = token.value;
+	    if (helperValidatorIdentifier.isKeyword(tokenValue) || helperValidatorIdentifier.isStrictReservedWord(tokenValue, true) || sometimesKeywords.has(tokenValue)) {
+	      return "keyword";
 	    }
-	    if (token.type === "punctuator" && BRACKET.test(token.value)) {
-	      return "bracket";
+	    if (JSX_TAG.test(tokenValue) && (text[offset - 1] === "<" || text.slice(offset - 2, offset) === "</")) {
+	      return "jsxIdentifier";
 	    }
-	    if (token.type === "invalid" && (token.value === "@" || token.value === "#")) {
-	      return "punctuator";
+	    const firstChar = String.fromCodePoint(tokenValue.codePointAt(0));
+	    if (firstChar !== firstChar.toLowerCase()) {
+	      return "capitalized";
 	    }
-	    return token.type;
-	  };
-	  tokenize = function* (text) {
-	    let match;
-	    while (match = jsTokens.default.exec(text)) {
-	      const token = jsTokens.matchToToken(match);
-	      yield {
-	        type: getTokenType(token, match.index, text),
-	        value: token.value
-	      };
-	    }
-	  };
-	}
+	  }
+	  if (token.type === "punctuator" && BRACKET.test(token.value)) {
+	    return "bracket";
+	  }
+	  if (token.type === "invalid" && (token.value === "@" || token.value === "#")) {
+	    return "punctuator";
+	  }
+	  return token.type;
+	};
+	tokenize = function* (text) {
+	  let match;
+	  while (match = jsTokens.default.exec(text)) {
+	    const token = jsTokens.matchToToken(match);
+	    yield {
+	      type: getTokenType(token, match.index, text),
+	      value: token.value
+	    };
+	  }
+	};
 	function highlight(text) {
 	  if (text === "") return "";
 	  const defs = getDefs(true);
@@ -28196,7 +28211,7 @@ function requireLib$5 () {
 
 	let deprecationWarningShown = false;
 	const NEWLINE = /\r\n|[\n\r\u2028\u2029]/;
-	function getMarkerLines(loc, source, opts) {
+	function getMarkerLines(loc, source, opts, startLineBaseZero) {
 	  const startLoc = Object.assign({
 	    column: 0,
 	    line: -1
@@ -28206,9 +28221,9 @@ function requireLib$5 () {
 	    linesAbove = 2,
 	    linesBelow = 3
 	  } = opts || {};
-	  const startLine = startLoc.line;
+	  const startLine = startLoc.line - startLineBaseZero;
 	  const startColumn = startLoc.column;
-	  const endLine = endLoc.line;
+	  const endLine = endLoc.line - startLineBaseZero;
 	  const endColumn = endLoc.column;
 	  let start = Math.max(startLine - (linesAbove + 1), 0);
 	  let end = Math.min(source.length, endLine + linesBelow);
@@ -28254,19 +28269,20 @@ function requireLib$5 () {
 	}
 	function codeFrameColumns(rawLines, loc, opts = {}) {
 	  const shouldHighlight = opts.forceColor || isColorSupported() && opts.highlightCode;
+	  const startLineBaseZero = (opts.startLine || 1) - 1;
 	  const defs = getDefs(shouldHighlight);
 	  const lines = rawLines.split(NEWLINE);
 	  const {
 	    start,
 	    end,
 	    markerLines
-	  } = getMarkerLines(loc, lines, opts);
+	  } = getMarkerLines(loc, lines, opts, startLineBaseZero);
 	  const hasColumns = loc.start && typeof loc.start.column === "number";
-	  const numberMaxWidth = String(end).length;
+	  const numberMaxWidth = String(end + startLineBaseZero).length;
 	  const highlightedLines = shouldHighlight ? highlight(rawLines) : rawLines;
 	  let frame = highlightedLines.split(NEWLINE, end).slice(start, end).map((line, index) => {
 	    const number = start + 1 + index;
-	    const paddedNumber = ` ${number}`.slice(-numberMaxWidth);
+	    const paddedNumber = ` ${number + startLineBaseZero}`.slice(-numberMaxWidth);
 	    const gutter = ` ${paddedNumber} |`;
 	    const hasMarker = markerLines[number];
 	    const lastMarkerLine = !markerLines[number + 1];
@@ -29009,7 +29025,7 @@ function requireInt () {
 	        if (ch !== '0' && ch !== '1') return false
 	        hasDigits = true;
 	      }
-	      return hasDigits && Number.isFinite(parseYamlInteger(data))
+	      return hasDigits && isFinite(parseYamlInteger(data))
 	    }
 
 	    if (ch === 'x') {
@@ -29020,7 +29036,7 @@ function requireInt () {
 	        if (!isHexCode(data.charCodeAt(index))) return false
 	        hasDigits = true;
 	      }
-	      return hasDigits && Number.isFinite(parseYamlInteger(data))
+	      return hasDigits && isFinite(parseYamlInteger(data))
 	    }
 
 	    if (ch === 'o') {
@@ -29031,7 +29047,7 @@ function requireInt () {
 	        if (!isOctCode(data.charCodeAt(index))) return false
 	        hasDigits = true;
 	      }
-	      return hasDigits && Number.isFinite(parseYamlInteger(data))
+	      return hasDigits && isFinite(parseYamlInteger(data))
 	    }
 	  }
 
@@ -29046,7 +29062,7 @@ function requireInt () {
 
 	  if (!hasDigits) return false
 
-	  return Number.isFinite(parseYamlInteger(data))
+	  return isFinite(parseYamlInteger(data))
 	}
 
 	function parseYamlInteger (data) {
@@ -29138,7 +29154,7 @@ function requireFloat () {
 	    return false
 	  }
 
-	  if (Number.isFinite(parseFloat(data, 10))) {
+	  if (isFinite(parseFloat(data, 10))) {
 	    return true
 	  }
 
@@ -29500,7 +29516,7 @@ function requireOmap () {
 	function resolveYamlOmap (data) {
 	  if (data === null) return true
 
-	  const objectKeys = [];
+	  const objectKeys = {};
 	  const object = data;
 
 	  for (let index = 0, length = object.length; index < length; index += 1) {
@@ -29519,8 +29535,8 @@ function requireOmap () {
 
 	    if (!pairHasKey) return false
 
-	    if (objectKeys.indexOf(pairKey) === -1) objectKeys.push(pairKey);
-	    else return false
+	    if (_hasOwnProperty.call(objectKeys, pairKey)) return false
+	    Object.defineProperty(objectKeys, pairKey, { value: true });
 	  }
 
 	  return true
@@ -29813,7 +29829,7 @@ function requireLoader () {
 	  this.json = options['json'] || false;
 	  this.listener = options['listener'] || null;
 	  this.maxDepth = typeof options['maxDepth'] === 'number' ? options['maxDepth'] : 100;
-	  this.maxMergeSeqLength = typeof options['maxMergeSeqLength'] === 'number' ? options['maxMergeSeqLength'] : 20;
+	  this.maxTotalMergeKeys = typeof options['maxTotalMergeKeys'] === 'number' ? options['maxTotalMergeKeys'] : 10000;
 
 	  this.implicitTypes = this.schema.compiledImplicit;
 	  this.typeMap = this.schema.compiledTypeMap;
@@ -29824,6 +29840,7 @@ function requireLoader () {
 	  this.lineStart = 0;
 	  this.lineIndent = 0;
 	  this.depth = 0;
+	  this.totalMergeKeys = 0;
 
 	  // position of first leading tab in the current line,
 	  // used to make sure there are no tabs in the indentation
@@ -30031,15 +30048,28 @@ function requireLoader () {
 	  }
 	}
 
+	function chargeMergeWork (state) {
+	  state.totalMergeKeys++;
+
+	  if (state.maxTotalMergeKeys !== -1 && state.totalMergeKeys > state.maxTotalMergeKeys) {
+	    throwError(state, 'merge keys exceeded maxTotalMergeKeys (' + state.maxTotalMergeKeys + ')');
+	  }
+	}
+
 	function mergeMappings (state, destination, source, overridableKeys) {
 	  if (!common.isObject(source)) {
 	    throwError(state, 'cannot merge mappings; the provided source object is unacceptable');
 	  }
 
+	  // Count the source mapping itself to bound sequences of empty mappings.
+	  chargeMergeWork(state);
+
 	  const sourceKeys = Object.keys(source);
 
 	  for (let index = 0, quantity = sourceKeys.length; index < quantity; index += 1) {
 	    const key = sourceKeys[index];
+
+	    chargeMergeWork(state);
 
 	    if (!_hasOwnProperty.call(destination, key)) {
 	      setProperty(destination, key, source[key]);
@@ -30082,17 +30112,12 @@ function requireLoader () {
 
 	  if (keyTag === 'tag:yaml.org,2002:merge') {
 	    if (Array.isArray(valueNode)) {
-	      if (valueNode.length > state.maxMergeSeqLength) {
-	        throwError(state, 'merge sequence length exceeded maxMergeSeqLength (' + state.maxMergeSeqLength + ')');
+	      if (valueNode.length > 100) {
+	        throwError(state, 'abnormal merge sequence size');
 	      }
-	      const seen = new Set();
+
 	      for (let index = 0, quantity = valueNode.length; index < quantity; index += 1) {
-	        const src = valueNode[index];
-	        // Existing keys are not overridden on merge, so dedupe sources to
-	        // avoid redundant work on repeated aliases.
-	        if (seen.has(src)) continue
-	        seen.add(src);
-	        mergeMappings(state, _result, src, overridableKeys);
+	        mergeMappings(state, _result, valueNode[index], overridableKeys);
 	      }
 	    } else {
 	      mergeMappings(state, _result, valueNode, overridableKeys);
@@ -91577,7 +91602,7 @@ ${lanes.join("\n")}
 		    );
 		    const result = writer.getText();
 		    const maxLength2 = maximumLength || (noTruncation ? noTruncationMaximumTruncationLength * 2 : defaultMaximumTruncationLength * 2);
-		    if (maxLength2 && result && result.length >= maxLength2) {
+		    if (result && result.length >= maxLength2) {
 		      return result.substr(0, maxLength2 - "...".length) + "...";
 		    }
 		    return result;
@@ -235402,17 +235427,17 @@ var root = freeGlobal || freeSelf || Function('return this')();
 var Symbol$1 = root.Symbol;
 
 /** Used for built-in method references. */
-var objectProto$s = Object.prototype;
+var objectProto$t = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$q = objectProto$s.hasOwnProperty;
+var hasOwnProperty$r = objectProto$t.hasOwnProperty;
 
 /**
  * Used to resolve the
  * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
  * of values.
  */
-var nativeObjectToString$3 = objectProto$s.toString;
+var nativeObjectToString$3 = objectProto$t.toString;
 
 /** Built-in value references. */
 var symToStringTag$1 = Symbol$1 ? Symbol$1.toStringTag : undefined;
@@ -235425,7 +235450,7 @@ var symToStringTag$1 = Symbol$1 ? Symbol$1.toStringTag : undefined;
  * @returns {string} Returns the raw `toStringTag`.
  */
 function getRawTag(value) {
-  var isOwn = hasOwnProperty$q.call(value, symToStringTag$1),
+  var isOwn = hasOwnProperty$r.call(value, symToStringTag$1),
       tag = value[symToStringTag$1];
 
   try {
@@ -235445,14 +235470,14 @@ function getRawTag(value) {
 }
 
 /** Used for built-in method references. */
-var objectProto$r = Object.prototype;
+var objectProto$s = Object.prototype;
 
 /**
  * Used to resolve the
  * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
  * of values.
  */
-var nativeObjectToString$2 = objectProto$r.toString;
+var nativeObjectToString$2 = objectProto$s.toString;
 
 /**
  * Converts `value` to a string using `Object.prototype.toString`.
@@ -235843,7 +235868,7 @@ function toFinite(value) {
     return value === 0 ? value : 0;
   }
   value = toNumber(value);
-  if (value === INFINITY$3 || value === -Infinity) {
+  if (value === INFINITY$3 || value === -INFINITY$3) {
     var sign = (value < 0 ? -1 : 1);
     return sign * MAX_INTEGER;
   }
@@ -236031,17 +236056,17 @@ var reIsHostCtor = /^\[object .+?Constructor\]$/;
 
 /** Used for built-in method references. */
 var funcProto$1 = Function.prototype,
-    objectProto$q = Object.prototype;
+    objectProto$r = Object.prototype;
 
 /** Used to resolve the decompiled source of functions. */
 var funcToString$1 = funcProto$1.toString;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$p = objectProto$q.hasOwnProperty;
+var hasOwnProperty$q = objectProto$r.hasOwnProperty;
 
 /** Used to detect if a method is native. */
 var reIsNative = RegExp('^' +
-  funcToString$1.call(hasOwnProperty$p).replace(reRegExpChar$1, '\\$&')
+  funcToString$1.call(hasOwnProperty$q).replace(reRegExpChar$1, '\\$&')
   .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
 );
 
@@ -236371,10 +236396,10 @@ var getData = !metaMap ? noop$3 : function(func) {
 var realNames = {};
 
 /** Used for built-in method references. */
-var objectProto$p = Object.prototype;
+var objectProto$q = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$o = objectProto$p.hasOwnProperty;
+var hasOwnProperty$p = objectProto$q.hasOwnProperty;
 
 /**
  * Gets the name of `func`.
@@ -236386,7 +236411,7 @@ var hasOwnProperty$o = objectProto$p.hasOwnProperty;
 function getFuncName(func) {
   var result = (func.name + ''),
       array = realNames[result],
-      length = hasOwnProperty$o.call(realNames, result) ? array.length : 0;
+      length = hasOwnProperty$p.call(realNames, result) ? array.length : 0;
 
   while (length--) {
     var data = array[length],
@@ -236454,10 +236479,10 @@ function wrapperClone(wrapper) {
 }
 
 /** Used for built-in method references. */
-var objectProto$o = Object.prototype;
+var objectProto$p = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$n = objectProto$o.hasOwnProperty;
+var hasOwnProperty$o = objectProto$p.hasOwnProperty;
 
 /**
  * Creates a `lodash` object which wraps `value` to enable implicit method
@@ -236581,7 +236606,7 @@ function lodash(value) {
     if (value instanceof LodashWrapper) {
       return value;
     }
-    if (hasOwnProperty$n.call(value, '__wrapped__')) {
+    if (hasOwnProperty$o.call(value, '__wrapped__')) {
       return wrapperClone(value);
     }
   }
@@ -237485,10 +237510,10 @@ function eq(value, other) {
 }
 
 /** Used for built-in method references. */
-var objectProto$n = Object.prototype;
+var objectProto$o = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$m = objectProto$n.hasOwnProperty;
+var hasOwnProperty$n = objectProto$o.hasOwnProperty;
 
 /**
  * Assigns `value` to `key` of `object` if the existing value is not equivalent
@@ -237502,7 +237527,7 @@ var hasOwnProperty$m = objectProto$n.hasOwnProperty;
  */
 function assignValue(object, key, value) {
   var objValue = object[key];
-  if (!(hasOwnProperty$m.call(object, key) && eq(objValue, value)) ||
+  if (!(hasOwnProperty$n.call(object, key) && eq(objValue, value)) ||
       (value === undefined && !(key in object))) {
     baseAssignValue(object, key, value);
   }
@@ -237710,7 +237735,7 @@ function createAssigner(assigner) {
 }
 
 /** Used for built-in method references. */
-var objectProto$m = Object.prototype;
+var objectProto$n = Object.prototype;
 
 /**
  * Checks if `value` is likely a prototype object.
@@ -237721,7 +237746,7 @@ var objectProto$m = Object.prototype;
  */
 function isPrototype(value) {
   var Ctor = value && value.constructor,
-      proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto$m;
+      proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto$n;
 
   return value === proto;
 }
@@ -237760,13 +237785,13 @@ function baseIsArguments(value) {
 }
 
 /** Used for built-in method references. */
-var objectProto$l = Object.prototype;
+var objectProto$m = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$l = objectProto$l.hasOwnProperty;
+var hasOwnProperty$m = objectProto$m.hasOwnProperty;
 
 /** Built-in value references. */
-var propertyIsEnumerable$1 = objectProto$l.propertyIsEnumerable;
+var propertyIsEnumerable$1 = objectProto$m.propertyIsEnumerable;
 
 /**
  * Checks if `value` is likely an `arguments` object.
@@ -237787,7 +237812,7 @@ var propertyIsEnumerable$1 = objectProto$l.propertyIsEnumerable;
  * // => false
  */
 var isArguments = baseIsArguments(function() { return arguments; }()) ? baseIsArguments : function(value) {
-  return isObjectLike(value) && hasOwnProperty$l.call(value, 'callee') &&
+  return isObjectLike(value) && hasOwnProperty$m.call(value, 'callee') &&
     !propertyIsEnumerable$1.call(value, 'callee');
 };
 
@@ -237960,10 +237985,10 @@ var nodeIsTypedArray = nodeUtil && nodeUtil.isTypedArray;
 var isTypedArray = nodeIsTypedArray ? baseUnary(nodeIsTypedArray) : baseIsTypedArray;
 
 /** Used for built-in method references. */
-var objectProto$k = Object.prototype;
+var objectProto$l = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$k = objectProto$k.hasOwnProperty;
+var hasOwnProperty$l = objectProto$l.hasOwnProperty;
 
 /**
  * Creates an array of the enumerable property names of the array-like `value`.
@@ -237983,7 +238008,7 @@ function arrayLikeKeys(value, inherited) {
       length = result.length;
 
   for (var key in value) {
-    if ((inherited || hasOwnProperty$k.call(value, key)) &&
+    if ((inherited || hasOwnProperty$l.call(value, key)) &&
         !(skipIndexes && (
            // Safari 9 has enumerable `arguments.length` in strict mode.
            key == 'length' ||
@@ -238018,10 +238043,10 @@ function overArg(func, transform) {
 var nativeKeys = overArg(Object.keys, Object);
 
 /** Used for built-in method references. */
-var objectProto$j = Object.prototype;
+var objectProto$k = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$j = objectProto$j.hasOwnProperty;
+var hasOwnProperty$k = objectProto$k.hasOwnProperty;
 
 /**
  * The base implementation of `_.keys` which doesn't treat sparse arrays as dense.
@@ -238036,7 +238061,7 @@ function baseKeys(object) {
   }
   var result = [];
   for (var key in Object(object)) {
-    if (hasOwnProperty$j.call(object, key) && key != 'constructor') {
+    if (hasOwnProperty$k.call(object, key) && key != 'constructor') {
       result.push(key);
     }
   }
@@ -238076,10 +238101,10 @@ function keys(object) {
 }
 
 /** Used for built-in method references. */
-var objectProto$i = Object.prototype;
+var objectProto$j = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$i = objectProto$i.hasOwnProperty;
+var hasOwnProperty$j = objectProto$j.hasOwnProperty;
 
 /**
  * Assigns own enumerable string keyed properties of source objects to the
@@ -238119,7 +238144,7 @@ var assign = createAssigner(function(object, source) {
     return;
   }
   for (var key in source) {
-    if (hasOwnProperty$i.call(source, key)) {
+    if (hasOwnProperty$j.call(source, key)) {
       assignValue(object, key, source[key]);
     }
   }
@@ -238145,10 +238170,10 @@ function nativeKeysIn(object) {
 }
 
 /** Used for built-in method references. */
-var objectProto$h = Object.prototype;
+var objectProto$i = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$h = objectProto$h.hasOwnProperty;
+var hasOwnProperty$i = objectProto$i.hasOwnProperty;
 
 /**
  * The base implementation of `_.keysIn` which doesn't treat sparse arrays as dense.
@@ -238165,7 +238190,7 @@ function baseKeysIn(object) {
       result = [];
 
   for (var key in object) {
-    if (!(key == 'constructor' && (isProto || !hasOwnProperty$h.call(object, key)))) {
+    if (!(key == 'constructor' && (isProto || !hasOwnProperty$i.call(object, key)))) {
       result.push(key);
     }
   }
@@ -238359,10 +238384,10 @@ function hashDelete(key) {
 var HASH_UNDEFINED$2 = '__lodash_hash_undefined__';
 
 /** Used for built-in method references. */
-var objectProto$g = Object.prototype;
+var objectProto$h = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$g = objectProto$g.hasOwnProperty;
+var hasOwnProperty$h = objectProto$h.hasOwnProperty;
 
 /**
  * Gets the hash value for `key`.
@@ -238379,14 +238404,14 @@ function hashGet(key) {
     var result = data[key];
     return result === HASH_UNDEFINED$2 ? undefined : result;
   }
-  return hasOwnProperty$g.call(data, key) ? data[key] : undefined;
+  return hasOwnProperty$h.call(data, key) ? data[key] : undefined;
 }
 
 /** Used for built-in method references. */
-var objectProto$f = Object.prototype;
+var objectProto$g = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$f = objectProto$f.hasOwnProperty;
+var hasOwnProperty$g = objectProto$g.hasOwnProperty;
 
 /**
  * Checks if a hash value for `key` exists.
@@ -238399,7 +238424,7 @@ var hasOwnProperty$f = objectProto$f.hasOwnProperty;
  */
 function hashHas(key) {
   var data = this.__data__;
-  return nativeCreate ? (data[key] !== undefined) : hasOwnProperty$f.call(data, key);
+  return nativeCreate ? (data[key] !== undefined) : hasOwnProperty$g.call(data, key);
 }
 
 /** Used to stand-in for `undefined` hash values. */
@@ -239086,13 +239111,13 @@ var objectTag$3 = '[object Object]';
 
 /** Used for built-in method references. */
 var funcProto = Function.prototype,
-    objectProto$e = Object.prototype;
+    objectProto$f = Object.prototype;
 
 /** Used to resolve the decompiled source of functions. */
 var funcToString = funcProto.toString;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$e = objectProto$e.hasOwnProperty;
+var hasOwnProperty$f = objectProto$f.hasOwnProperty;
 
 /** Used to infer the `Object` constructor. */
 var objectCtorString = funcToString.call(Object);
@@ -239133,7 +239158,7 @@ function isPlainObject$3(value) {
   if (proto === null) {
     return true;
   }
-  var Ctor = hasOwnProperty$e.call(proto, 'constructor') && proto.constructor;
+  var Ctor = hasOwnProperty$f.call(proto, 'constructor') && proto.constructor;
   return typeof Ctor == 'function' && Ctor instanceof Ctor &&
     funcToString.call(Ctor) == objectCtorString;
 }
@@ -240334,10 +240359,10 @@ function stubArray() {
 }
 
 /** Used for built-in method references. */
-var objectProto$d = Object.prototype;
+var objectProto$e = Object.prototype;
 
 /** Built-in value references. */
-var propertyIsEnumerable = objectProto$d.propertyIsEnumerable;
+var propertyIsEnumerable = objectProto$e.propertyIsEnumerable;
 
 /* Built-in method references for those with the same name as other `lodash` methods. */
 var nativeGetSymbols$1 = Object.getOwnPropertySymbols;
@@ -240502,10 +240527,10 @@ if ((DataView && getTag(new DataView(new ArrayBuffer(1))) != dataViewTag$3) ||
 var getTag$1 = getTag;
 
 /** Used for built-in method references. */
-var objectProto$c = Object.prototype;
+var objectProto$d = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$d = objectProto$c.hasOwnProperty;
+var hasOwnProperty$e = objectProto$d.hasOwnProperty;
 
 /**
  * Initializes an array clone.
@@ -240519,7 +240544,7 @@ function initCloneArray(array) {
       result = new array.constructor(length);
 
   // Add properties assigned by `RegExp#exec`.
-  if (length && typeof array[0] == 'string' && hasOwnProperty$d.call(array, 'index')) {
+  if (length && typeof array[0] == 'string' && hasOwnProperty$e.call(array, 'index')) {
     result.index = array.index;
     result.input = array.input;
   }
@@ -241063,7 +241088,7 @@ function wrapperCommit() {
 
 /**
  * Creates an array with all falsey values removed. The values `false`, `null`,
- * `0`, `""`, `undefined`, and `NaN` are falsey.
+ * `0`, `-0`, `0n`, `""`, `undefined`, and `NaN` are falsy.
  *
  * @static
  * @memberOf _
@@ -241153,7 +241178,7 @@ function setCacheAdd(value) {
  * @name has
  * @memberOf SetCache
  * @param {*} value The value to search for.
- * @returns {number} Returns `true` if `value` is found, else `false`.
+ * @returns {boolean} Returns `true` if `value` is found, else `false`.
  */
 function setCacheHas(value) {
   return this.__data__.has(value);
@@ -241436,10 +241461,10 @@ function equalByTag(object, other, tag, bitmask, customizer, equalFunc, stack) {
 var COMPARE_PARTIAL_FLAG$3 = 1;
 
 /** Used for built-in method references. */
-var objectProto$b = Object.prototype;
+var objectProto$c = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$c = objectProto$b.hasOwnProperty;
+var hasOwnProperty$d = objectProto$c.hasOwnProperty;
 
 /**
  * A specialized version of `baseIsEqualDeep` for objects with support for
@@ -241467,7 +241492,7 @@ function equalObjects(object, other, bitmask, customizer, equalFunc, stack) {
   var index = objLength;
   while (index--) {
     var key = objProps[index];
-    if (!(isPartial ? key in other : hasOwnProperty$c.call(other, key))) {
+    if (!(isPartial ? key in other : hasOwnProperty$d.call(other, key))) {
       return false;
     }
   }
@@ -241528,10 +241553,10 @@ var argsTag = '[object Arguments]',
     objectTag = '[object Object]';
 
 /** Used for built-in method references. */
-var objectProto$a = Object.prototype;
+var objectProto$b = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$b = objectProto$a.hasOwnProperty;
+var hasOwnProperty$c = objectProto$b.hasOwnProperty;
 
 /**
  * A specialized version of `baseIsEqual` for arrays and objects which performs
@@ -241574,8 +241599,8 @@ function baseIsEqualDeep(object, other, bitmask, customizer, equalFunc, stack) {
       : equalByTag(object, other, objTag, bitmask, customizer, equalFunc, stack);
   }
   if (!(bitmask & COMPARE_PARTIAL_FLAG$2)) {
-    var objIsWrapped = objIsObj && hasOwnProperty$b.call(object, '__wrapped__'),
-        othIsWrapped = othIsObj && hasOwnProperty$b.call(other, '__wrapped__');
+    var objIsWrapped = objIsObj && hasOwnProperty$c.call(object, '__wrapped__'),
+        othIsWrapped = othIsObj && hasOwnProperty$c.call(other, '__wrapped__');
 
     if (objIsWrapped || othIsWrapped) {
       var objUnwrapped = objIsWrapped ? object.value() : object,
@@ -242213,10 +242238,10 @@ function createAggregator(setter, initializer) {
 }
 
 /** Used for built-in method references. */
-var objectProto$9 = Object.prototype;
+var objectProto$a = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$a = objectProto$9.hasOwnProperty;
+var hasOwnProperty$b = objectProto$a.hasOwnProperty;
 
 /**
  * Creates an object composed of keys generated from the results of running
@@ -242241,7 +242266,7 @@ var hasOwnProperty$a = objectProto$9.hasOwnProperty;
  * // => { '3': 2, '5': 1 }
  */
 var countBy = createAggregator(function(result, value, key) {
-  if (hasOwnProperty$a.call(result, key)) {
+  if (hasOwnProperty$b.call(result, key)) {
     ++result[key];
   } else {
     baseAssignValue(result, key, 1);
@@ -242623,10 +242648,10 @@ function defaultTo(value, defaultValue) {
 }
 
 /** Used for built-in method references. */
-var objectProto$8 = Object.prototype;
+var objectProto$9 = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$9 = objectProto$8.hasOwnProperty;
+var hasOwnProperty$a = objectProto$9.hasOwnProperty;
 
 /**
  * Assigns own and inherited enumerable string keyed properties of source
@@ -242671,7 +242696,7 @@ var defaults = baseRest(function(object, sources) {
       var value = object[key];
 
       if (value === undefined ||
-          (eq(value, objectProto$8[key]) && !hasOwnProperty$9.call(object, key))) {
+          (eq(value, objectProto$9[key]) && !hasOwnProperty$a.call(object, key))) {
         object[key] = source[key];
       }
     }
@@ -244845,7 +244870,7 @@ function fromPairs(pairs) {
 
   while (++index < length) {
     var pair = pairs[index];
-    result[pair[0]] = pair[1];
+    baseAssignValue(result, pair[0], pair[1]);
   }
   return result;
 }
@@ -244920,10 +244945,10 @@ function functionsIn(object) {
 }
 
 /** Used for built-in method references. */
-var objectProto$7 = Object.prototype;
+var objectProto$8 = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$8 = objectProto$7.hasOwnProperty;
+var hasOwnProperty$9 = objectProto$8.hasOwnProperty;
 
 /**
  * Creates an object composed of keys generated from the results of running
@@ -244949,7 +244974,7 @@ var hasOwnProperty$8 = objectProto$7.hasOwnProperty;
  * // => { '3': ['one', 'two'], '5': ['three'] }
  */
 var groupBy = createAggregator(function(result, value, key) {
-  if (hasOwnProperty$8.call(result, key)) {
+  if (hasOwnProperty$9.call(result, key)) {
     result[key].push(value);
   } else {
     baseAssignValue(result, key, [value]);
@@ -245039,10 +245064,10 @@ var gte = createRelationalOperation(function(value, other) {
 });
 
 /** Used for built-in method references. */
-var objectProto$6 = Object.prototype;
+var objectProto$7 = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$7 = objectProto$6.hasOwnProperty;
+var hasOwnProperty$8 = objectProto$7.hasOwnProperty;
 
 /**
  * The base implementation of `_.has` without support for deep paths.
@@ -245053,7 +245078,7 @@ var hasOwnProperty$7 = objectProto$6.hasOwnProperty;
  * @returns {boolean} Returns `true` if `key` exists, else `false`.
  */
 function baseHas(object, key) {
-  return object != null && hasOwnProperty$7.call(object, key);
+  return object != null && hasOwnProperty$8.call(object, key);
 }
 
 /**
@@ -245533,14 +245558,14 @@ function createInverter(setter, toIteratee) {
 }
 
 /** Used for built-in method references. */
-var objectProto$5 = Object.prototype;
+var objectProto$6 = Object.prototype;
 
 /**
  * Used to resolve the
  * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
  * of values.
  */
-var nativeObjectToString$1 = objectProto$5.toString;
+var nativeObjectToString$1 = objectProto$6.toString;
 
 /**
  * Creates an object composed of the inverted keys and values of `object`.
@@ -245570,17 +245595,17 @@ var invert = createInverter(function(result, value, key) {
 }, constant(identity$3));
 
 /** Used for built-in method references. */
-var objectProto$4 = Object.prototype;
+var objectProto$5 = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$6 = objectProto$4.hasOwnProperty;
+var hasOwnProperty$7 = objectProto$5.hasOwnProperty;
 
 /**
  * Used to resolve the
  * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
  * of values.
  */
-var nativeObjectToString = objectProto$4.toString;
+var nativeObjectToString = objectProto$5.toString;
 
 /**
  * This method is like `_.invert` except that the inverted object is generated
@@ -245614,7 +245639,7 @@ var invertBy = createInverter(function(result, value, key) {
     value = nativeObjectToString.call(value);
   }
 
-  if (hasOwnProperty$6.call(result, value)) {
+  if (hasOwnProperty$7.call(result, value)) {
     result[value].push(key);
   } else {
     result[value] = [key];
@@ -245826,10 +245851,10 @@ var mapTag$2 = '[object Map]',
     setTag$2 = '[object Set]';
 
 /** Used for built-in method references. */
-var objectProto$3 = Object.prototype;
+var objectProto$4 = Object.prototype;
 
 /** Used to check objects for own properties. */
-var hasOwnProperty$5 = objectProto$3.hasOwnProperty;
+var hasOwnProperty$6 = objectProto$4.hasOwnProperty;
 
 /**
  * Checks if `value` is an empty object, collection, map, or set.
@@ -245881,7 +245906,7 @@ function isEmpty(value) {
     return !baseKeys(value).length;
   }
   for (var key in value) {
-    if (hasOwnProperty$5.call(value, key)) {
+    if (hasOwnProperty$6.call(value, key)) {
       return false;
     }
   }
@@ -246316,7 +246341,7 @@ var MAX_SAFE_INTEGER$3 = 9007199254740991;
  * // => false
  */
 function isSafeInteger(value) {
-  return isInteger(value) && value >= -9007199254740991 && value <= MAX_SAFE_INTEGER$3;
+  return isInteger(value) && value >= -MAX_SAFE_INTEGER$3 && value <= MAX_SAFE_INTEGER$3;
 }
 
 /**
@@ -247439,6 +247464,12 @@ function nthArg(n) {
   });
 }
 
+/** Used for built-in method references. */
+var objectProto$3 = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty$5 = objectProto$3.hasOwnProperty;
+
 /**
  * The base implementation of `_.unset`.
  *
@@ -247449,8 +247480,34 @@ function nthArg(n) {
  */
 function baseUnset(object, path) {
   path = castPath(path, object);
-  object = parent(object, path);
-  return object == null || delete object[toKey(last(path))];
+
+  // Prevent prototype pollution:
+  // https://github.com/lodash/lodash/security/advisories/GHSA-xxjr-mmjv-4gpg
+  // https://github.com/lodash/lodash/security/advisories/GHSA-f23m-r3pf-42rh
+  var index = -1,
+      length = path.length;
+
+  if (!length) {
+    return true;
+  }
+
+  while (++index < length) {
+    var key = toKey(path[index]);
+
+    // Always block "__proto__" anywhere in the path if it's not expected
+    if (key === '__proto__' && !hasOwnProperty$5.call(object, '__proto__')) {
+      return false;
+    }
+
+    // Block constructor/prototype as non-terminal traversal keys to prevent
+    // escaping the object graph into built-in constructors and prototypes.
+    if ((key === 'constructor' || key === 'prototype') && index < length - 1) {
+      return false;
+    }
+  }
+
+  var obj = parent(object, path);
+  return obj == null || delete obj[toKey(last(path))];
 }
 
 /**
@@ -247773,7 +247830,7 @@ function baseOrderBy(collection, iteratees, orders) {
       if (isArray(iteratee)) {
         return function(value) {
           return baseGet(value, iteratee.length === 1 ? iteratee[0] : iteratee);
-        }
+        };
       }
       return iteratee;
     });
@@ -248785,6 +248842,8 @@ var nativeMin$5 = Math.min,
  * **Note:** JavaScript follows the IEEE-754 standard for resolving
  * floating-point values which can produce unexpected results.
  *
+ * **Note:** If `lower` is greater than `upper`, the values are swapped.
+ *
  * @static
  * @memberOf _
  * @since 0.7.0
@@ -248798,8 +248857,15 @@ var nativeMin$5 = Math.min,
  * _.random(0, 5);
  * // => an integer between 0 and 5
  *
+ * // when lower is greater than upper the values are swapped
+ * _.random(5, 0);
+ * // => an integer between 0 and 5
+ *
  * _.random(5);
  * // => also an integer between 0 and 5
+ *
+ * _.random(-5);
+ * // => an integer between -5 and 0
  *
  * _.random(5, true);
  * // => a floating-point number between 0 and 5
@@ -250705,6 +250771,10 @@ var reEvaluate = /<%([\s\S]+?)%>/g;
  * embedded Ruby (ERB) as well as ES2015 template strings. Change the
  * following template settings to use alternative delimiters.
  *
+ * **Security:** See
+ * [threat model](https://github.com/lodash/lodash/blob/main/threat-model.md)
+ * — `_.template` is insecure and will be removed in v5.
+ *
  * @static
  * @memberOf _
  * @type {Object}
@@ -250762,7 +250832,8 @@ var templateSettings = {
 };
 
 /** Error message constants. */
-var INVALID_TEMPL_VAR_ERROR_TEXT = 'Invalid `variable` option passed into `_.template`';
+var INVALID_TEMPL_VAR_ERROR_TEXT = 'Invalid `variable` option passed into `_.template`',
+    INVALID_TEMPL_IMPORTS_ERROR_TEXT = 'Invalid `imports` option passed into `_.template`';
 
 /** Used to match empty string literals in compiled template source. */
 var reEmptyStringLeading = /\b__p \+= '';/g,
@@ -250805,6 +250876,10 @@ var hasOwnProperty$3 = objectProto$1.hasOwnProperty;
  * "escape" delimiters, and execute JavaScript in "evaluate" delimiters. Data
  * properties may be accessed as free variables in the template. If a setting
  * object is given, it takes precedence over `_.templateSettings` values.
+ *
+ * **Security:** `_.template` is insecure and should not be used. It will be
+ * removed in Lodash v5. Avoid untrusted input. See
+ * [threat model](https://github.com/lodash/lodash/blob/main/threat-model.md).
  *
  * **Note:** In the development build `_.template` utilizes
  * [sourceURLs](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/#toc-sourceurl)
@@ -250913,11 +250988,17 @@ function template(string, options, guard) {
     options = undefined;
   }
   string = toString$1(string);
-  options = assignInWith({}, options, settings, customDefaultsAssignIn);
+  options = assignWith({}, options, settings, customDefaultsAssignIn);
 
-  var imports = assignInWith({}, options.imports, settings.imports, customDefaultsAssignIn),
+  var imports = assignWith({}, options.imports, settings.imports, customDefaultsAssignIn),
       importsKeys = keys(imports),
       importsValues = baseValues(imports, importsKeys);
+
+  arrayEach(importsKeys, function(key) {
+    if (reForbiddenIdentifierChars.test(key)) {
+      throw new Error(INVALID_TEMPL_IMPORTS_ERROR_TEXT);
+    }
+  });
 
   var isEscaping,
       isEvaluating,
@@ -251296,7 +251377,7 @@ var MAX_SAFE_INTEGER = 9007199254740991;
  */
 function toSafeInteger(value) {
   return value
-    ? baseClamp(toInteger(value), -9007199254740991, MAX_SAFE_INTEGER)
+    ? baseClamp(toInteger(value), -MAX_SAFE_INTEGER, MAX_SAFE_INTEGER)
     : (value === 0 ? value : 0);
 }
 
@@ -252784,7 +252865,7 @@ function lazyValue() {
 /**
  * @license
  * Lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash modularize exports="es" -o ./`
+ * Build: `lodash modularize exports="es" --repo lodash/lodash#4.18.1 -o ./`
  * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
  * Released under MIT license <https://lodash.com/license>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
@@ -252792,7 +252873,7 @@ function lazyValue() {
  */
 
 /** Used as the semantic version number. */
-var VERSION$6 = '4.17.21';
+var VERSION$6 = '4.18.1';
 
 /** Used to compose bitmasks for function metadata. */
 var WRAP_BIND_KEY_FLAG = 2;
@@ -271826,7 +271907,7 @@ function requireTraverse () {
 		for (var i = 0; i < xs.length; i++) {
 			fn(xs[i], i, xs);
 		}
-		return void 0;
+		return void undefined;
 	}
 
 	// TODO: use object-keys
@@ -272023,7 +272104,7 @@ function requireTraverse () {
 		for (var i = 0; i < ps.length; i++) {
 			var key = ps[i];
 			if (!node || !hasOwnProperty.call(node, key)) {
-				return void 0;
+				return void undefined;
 			}
 			node = node[key];
 		}
@@ -278838,7 +278919,7 @@ const onMergedStreamFinished = async (passThroughStream, streams, unpipeEvent) =
 		]);
 	} finally {
 		controller.abort();
-		updateMaxListeners(passThroughStream, -2);
+		updateMaxListeners(passThroughStream, -PASSTHROUGH_LISTENERS_COUNT);
 	}
 };
 
@@ -278891,7 +278972,7 @@ const endWhenStreamsDone = async ({passThroughStream, stream, streams, ended, ab
 		]);
 	} finally {
 		controller.abort();
-		updateMaxListeners(passThroughStream, -1);
+		updateMaxListeners(passThroughStream, -PASSTHROUGH_LISTENERS_PER_STREAM);
 	}
 
 	if (streams.size > 0 && streams.size === ended.size + aborted.size) {
@@ -296100,18 +296181,9 @@ function restEndpointMethods(octokit) {
   };
 }
 restEndpointMethods.VERSION = VERSION$1;
-function legacyRestEndpointMethods(octokit) {
-  const api = endpointsToMethods(octokit);
-  return {
-    ...api,
-    rest: api
-  };
-}
-legacyRestEndpointMethods.VERSION = VERSION$1;
 
 var distSrc = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	legacyRestEndpointMethods: legacyRestEndpointMethods,
 	restEndpointMethods: restEndpointMethods
 });
 
@@ -296217,256 +296289,9 @@ function gather(octokit, results, iterator2, mapFn) {
 }
 
 // pkg/dist-src/compose-paginate.js
-var composePaginateRest = Object.assign(paginate, {
+Object.assign(paginate, {
   iterator
 });
-
-// pkg/dist-src/generated/paginating-endpoints.js
-var paginatingEndpoints = [
-  "GET /advisories",
-  "GET /app/hook/deliveries",
-  "GET /app/installation-requests",
-  "GET /app/installations",
-  "GET /assignments/{assignment_id}/accepted_assignments",
-  "GET /classrooms",
-  "GET /classrooms/{classroom_id}/assignments",
-  "GET /enterprises/{enterprise}/dependabot/alerts",
-  "GET /enterprises/{enterprise}/secret-scanning/alerts",
-  "GET /events",
-  "GET /gists",
-  "GET /gists/public",
-  "GET /gists/starred",
-  "GET /gists/{gist_id}/comments",
-  "GET /gists/{gist_id}/commits",
-  "GET /gists/{gist_id}/forks",
-  "GET /installation/repositories",
-  "GET /issues",
-  "GET /licenses",
-  "GET /marketplace_listing/plans",
-  "GET /marketplace_listing/plans/{plan_id}/accounts",
-  "GET /marketplace_listing/stubbed/plans",
-  "GET /marketplace_listing/stubbed/plans/{plan_id}/accounts",
-  "GET /networks/{owner}/{repo}/events",
-  "GET /notifications",
-  "GET /organizations",
-  "GET /orgs/{org}/actions/cache/usage-by-repository",
-  "GET /orgs/{org}/actions/permissions/repositories",
-  "GET /orgs/{org}/actions/runners",
-  "GET /orgs/{org}/actions/secrets",
-  "GET /orgs/{org}/actions/secrets/{secret_name}/repositories",
-  "GET /orgs/{org}/actions/variables",
-  "GET /orgs/{org}/actions/variables/{name}/repositories",
-  "GET /orgs/{org}/blocks",
-  "GET /orgs/{org}/code-scanning/alerts",
-  "GET /orgs/{org}/codespaces",
-  "GET /orgs/{org}/codespaces/secrets",
-  "GET /orgs/{org}/codespaces/secrets/{secret_name}/repositories",
-  "GET /orgs/{org}/copilot/billing/seats",
-  "GET /orgs/{org}/dependabot/alerts",
-  "GET /orgs/{org}/dependabot/secrets",
-  "GET /orgs/{org}/dependabot/secrets/{secret_name}/repositories",
-  "GET /orgs/{org}/events",
-  "GET /orgs/{org}/failed_invitations",
-  "GET /orgs/{org}/hooks",
-  "GET /orgs/{org}/hooks/{hook_id}/deliveries",
-  "GET /orgs/{org}/installations",
-  "GET /orgs/{org}/invitations",
-  "GET /orgs/{org}/invitations/{invitation_id}/teams",
-  "GET /orgs/{org}/issues",
-  "GET /orgs/{org}/members",
-  "GET /orgs/{org}/members/{username}/codespaces",
-  "GET /orgs/{org}/migrations",
-  "GET /orgs/{org}/migrations/{migration_id}/repositories",
-  "GET /orgs/{org}/organization-roles/{role_id}/teams",
-  "GET /orgs/{org}/organization-roles/{role_id}/users",
-  "GET /orgs/{org}/outside_collaborators",
-  "GET /orgs/{org}/packages",
-  "GET /orgs/{org}/packages/{package_type}/{package_name}/versions",
-  "GET /orgs/{org}/personal-access-token-requests",
-  "GET /orgs/{org}/personal-access-token-requests/{pat_request_id}/repositories",
-  "GET /orgs/{org}/personal-access-tokens",
-  "GET /orgs/{org}/personal-access-tokens/{pat_id}/repositories",
-  "GET /orgs/{org}/projects",
-  "GET /orgs/{org}/properties/values",
-  "GET /orgs/{org}/public_members",
-  "GET /orgs/{org}/repos",
-  "GET /orgs/{org}/rulesets",
-  "GET /orgs/{org}/rulesets/rule-suites",
-  "GET /orgs/{org}/secret-scanning/alerts",
-  "GET /orgs/{org}/security-advisories",
-  "GET /orgs/{org}/teams",
-  "GET /orgs/{org}/teams/{team_slug}/discussions",
-  "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments",
-  "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}/reactions",
-  "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/reactions",
-  "GET /orgs/{org}/teams/{team_slug}/invitations",
-  "GET /orgs/{org}/teams/{team_slug}/members",
-  "GET /orgs/{org}/teams/{team_slug}/projects",
-  "GET /orgs/{org}/teams/{team_slug}/repos",
-  "GET /orgs/{org}/teams/{team_slug}/teams",
-  "GET /projects/columns/{column_id}/cards",
-  "GET /projects/{project_id}/collaborators",
-  "GET /projects/{project_id}/columns",
-  "GET /repos/{owner}/{repo}/actions/artifacts",
-  "GET /repos/{owner}/{repo}/actions/caches",
-  "GET /repos/{owner}/{repo}/actions/organization-secrets",
-  "GET /repos/{owner}/{repo}/actions/organization-variables",
-  "GET /repos/{owner}/{repo}/actions/runners",
-  "GET /repos/{owner}/{repo}/actions/runs",
-  "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
-  "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/jobs",
-  "GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs",
-  "GET /repos/{owner}/{repo}/actions/secrets",
-  "GET /repos/{owner}/{repo}/actions/variables",
-  "GET /repos/{owner}/{repo}/actions/workflows",
-  "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs",
-  "GET /repos/{owner}/{repo}/activity",
-  "GET /repos/{owner}/{repo}/assignees",
-  "GET /repos/{owner}/{repo}/branches",
-  "GET /repos/{owner}/{repo}/check-runs/{check_run_id}/annotations",
-  "GET /repos/{owner}/{repo}/check-suites/{check_suite_id}/check-runs",
-  "GET /repos/{owner}/{repo}/code-scanning/alerts",
-  "GET /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}/instances",
-  "GET /repos/{owner}/{repo}/code-scanning/analyses",
-  "GET /repos/{owner}/{repo}/codespaces",
-  "GET /repos/{owner}/{repo}/codespaces/devcontainers",
-  "GET /repos/{owner}/{repo}/codespaces/secrets",
-  "GET /repos/{owner}/{repo}/collaborators",
-  "GET /repos/{owner}/{repo}/comments",
-  "GET /repos/{owner}/{repo}/comments/{comment_id}/reactions",
-  "GET /repos/{owner}/{repo}/commits",
-  "GET /repos/{owner}/{repo}/commits/{commit_sha}/comments",
-  "GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls",
-  "GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
-  "GET /repos/{owner}/{repo}/commits/{ref}/check-suites",
-  "GET /repos/{owner}/{repo}/commits/{ref}/status",
-  "GET /repos/{owner}/{repo}/commits/{ref}/statuses",
-  "GET /repos/{owner}/{repo}/contributors",
-  "GET /repos/{owner}/{repo}/dependabot/alerts",
-  "GET /repos/{owner}/{repo}/dependabot/secrets",
-  "GET /repos/{owner}/{repo}/deployments",
-  "GET /repos/{owner}/{repo}/deployments/{deployment_id}/statuses",
-  "GET /repos/{owner}/{repo}/environments",
-  "GET /repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies",
-  "GET /repos/{owner}/{repo}/environments/{environment_name}/deployment_protection_rules/apps",
-  "GET /repos/{owner}/{repo}/events",
-  "GET /repos/{owner}/{repo}/forks",
-  "GET /repos/{owner}/{repo}/hooks",
-  "GET /repos/{owner}/{repo}/hooks/{hook_id}/deliveries",
-  "GET /repos/{owner}/{repo}/invitations",
-  "GET /repos/{owner}/{repo}/issues",
-  "GET /repos/{owner}/{repo}/issues/comments",
-  "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions",
-  "GET /repos/{owner}/{repo}/issues/events",
-  "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
-  "GET /repos/{owner}/{repo}/issues/{issue_number}/events",
-  "GET /repos/{owner}/{repo}/issues/{issue_number}/labels",
-  "GET /repos/{owner}/{repo}/issues/{issue_number}/reactions",
-  "GET /repos/{owner}/{repo}/issues/{issue_number}/timeline",
-  "GET /repos/{owner}/{repo}/keys",
-  "GET /repos/{owner}/{repo}/labels",
-  "GET /repos/{owner}/{repo}/milestones",
-  "GET /repos/{owner}/{repo}/milestones/{milestone_number}/labels",
-  "GET /repos/{owner}/{repo}/notifications",
-  "GET /repos/{owner}/{repo}/pages/builds",
-  "GET /repos/{owner}/{repo}/projects",
-  "GET /repos/{owner}/{repo}/pulls",
-  "GET /repos/{owner}/{repo}/pulls/comments",
-  "GET /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions",
-  "GET /repos/{owner}/{repo}/pulls/{pull_number}/comments",
-  "GET /repos/{owner}/{repo}/pulls/{pull_number}/commits",
-  "GET /repos/{owner}/{repo}/pulls/{pull_number}/files",
-  "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews",
-  "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments",
-  "GET /repos/{owner}/{repo}/releases",
-  "GET /repos/{owner}/{repo}/releases/{release_id}/assets",
-  "GET /repos/{owner}/{repo}/releases/{release_id}/reactions",
-  "GET /repos/{owner}/{repo}/rules/branches/{branch}",
-  "GET /repos/{owner}/{repo}/rulesets",
-  "GET /repos/{owner}/{repo}/rulesets/rule-suites",
-  "GET /repos/{owner}/{repo}/secret-scanning/alerts",
-  "GET /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}/locations",
-  "GET /repos/{owner}/{repo}/security-advisories",
-  "GET /repos/{owner}/{repo}/stargazers",
-  "GET /repos/{owner}/{repo}/subscribers",
-  "GET /repos/{owner}/{repo}/tags",
-  "GET /repos/{owner}/{repo}/teams",
-  "GET /repos/{owner}/{repo}/topics",
-  "GET /repositories",
-  "GET /repositories/{repository_id}/environments/{environment_name}/secrets",
-  "GET /repositories/{repository_id}/environments/{environment_name}/variables",
-  "GET /search/code",
-  "GET /search/commits",
-  "GET /search/issues",
-  "GET /search/labels",
-  "GET /search/repositories",
-  "GET /search/topics",
-  "GET /search/users",
-  "GET /teams/{team_id}/discussions",
-  "GET /teams/{team_id}/discussions/{discussion_number}/comments",
-  "GET /teams/{team_id}/discussions/{discussion_number}/comments/{comment_number}/reactions",
-  "GET /teams/{team_id}/discussions/{discussion_number}/reactions",
-  "GET /teams/{team_id}/invitations",
-  "GET /teams/{team_id}/members",
-  "GET /teams/{team_id}/projects",
-  "GET /teams/{team_id}/repos",
-  "GET /teams/{team_id}/teams",
-  "GET /user/blocks",
-  "GET /user/codespaces",
-  "GET /user/codespaces/secrets",
-  "GET /user/emails",
-  "GET /user/followers",
-  "GET /user/following",
-  "GET /user/gpg_keys",
-  "GET /user/installations",
-  "GET /user/installations/{installation_id}/repositories",
-  "GET /user/issues",
-  "GET /user/keys",
-  "GET /user/marketplace_purchases",
-  "GET /user/marketplace_purchases/stubbed",
-  "GET /user/memberships/orgs",
-  "GET /user/migrations",
-  "GET /user/migrations/{migration_id}/repositories",
-  "GET /user/orgs",
-  "GET /user/packages",
-  "GET /user/packages/{package_type}/{package_name}/versions",
-  "GET /user/public_emails",
-  "GET /user/repos",
-  "GET /user/repository_invitations",
-  "GET /user/social_accounts",
-  "GET /user/ssh_signing_keys",
-  "GET /user/starred",
-  "GET /user/subscriptions",
-  "GET /user/teams",
-  "GET /users",
-  "GET /users/{username}/events",
-  "GET /users/{username}/events/orgs/{org}",
-  "GET /users/{username}/events/public",
-  "GET /users/{username}/followers",
-  "GET /users/{username}/following",
-  "GET /users/{username}/gists",
-  "GET /users/{username}/gpg_keys",
-  "GET /users/{username}/keys",
-  "GET /users/{username}/orgs",
-  "GET /users/{username}/packages",
-  "GET /users/{username}/projects",
-  "GET /users/{username}/received_events",
-  "GET /users/{username}/received_events/public",
-  "GET /users/{username}/repos",
-  "GET /users/{username}/social_accounts",
-  "GET /users/{username}/ssh_signing_keys",
-  "GET /users/{username}/starred",
-  "GET /users/{username}/subscriptions"
-];
-
-// pkg/dist-src/paginating-endpoints.js
-function isPaginatingEndpoint(arg) {
-  if (typeof arg === "string") {
-    return paginatingEndpoints.includes(arg);
-  } else {
-    return false;
-  }
-}
 
 // pkg/dist-src/index.js
 function paginateRest(octokit) {
@@ -296480,10 +296305,7 @@ paginateRest.VERSION = VERSION;
 
 var distWeb = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	composePaginateRest: composePaginateRest,
-	isPaginatingEndpoint: isPaginatingEndpoint,
-	paginateRest: paginateRest,
-	paginatingEndpoints: paginatingEndpoints
+	paginateRest: paginateRest
 });
 
 var hasRequiredUtils$1;
@@ -296627,8 +296449,12 @@ async function waitForAllChecks(ghCtx, token) {
     coreExports.info(`Starting check run monitoring for ref ${ref}`);
     coreExports.debug(`Identifying self as job ID: '${selfIdentifier}'`);
     while (Date.now() < deadline) {
-        const { data } = await octokit.rest.checks.listForRef({ owner, repo, ref });
-        const allRuns = data.check_runs;
+        const allRuns = await octokit.paginate(octokit.rest.checks.listForRef, {
+            owner,
+            repo,
+            ref,
+            per_page: 100,
+        });
         const pendingRuns = allRuns.filter((run) => run.status !== 'completed');
         const selfIsPresentInPending = pendingRuns.some((run) => run.name === selfIdentifier);
         if (!selfIsPresentInPending && pendingRuns.length === 1) {
@@ -296914,10 +296740,10 @@ var main = (async () => {
 var typescriptExports = requireTypescript$1();
 var typescript = /*@__PURE__*/getDefaultExportFromCjs(typescriptExports);
 
-var typescript$1 = /*#__PURE__*/Object.freeze({
+var typescript$1 = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null,
 	default: typescript
-});
+}, [typescriptExports]);
 
 const ANSI_BACKGROUND_OFFSET = 10;
 
