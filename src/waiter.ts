@@ -32,8 +32,12 @@ export default async function waitForAllChecks(
   debug(`Identifying self as job ID: '${selfIdentifier}'`);
 
   while (Date.now() < deadline) {
-    const { data } = await octokit.rest.checks.listForRef({ owner, repo, ref });
-    const allRuns = data.check_runs;
+    const allRuns = await octokit.paginate(octokit.rest.checks.listForRef, {
+      owner,
+      repo,
+      ref,
+      per_page: 100,
+    });
 
     const pendingRuns = allRuns.filter((run) => run.status !== 'completed');
 
