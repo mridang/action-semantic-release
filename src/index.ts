@@ -11,7 +11,7 @@ import {
 import { cosmiconfig } from 'cosmiconfig';
 import semanticRelease, { Options, Result } from 'semantic-release';
 import { createLoaders } from './loaders.js';
-import { Context } from '@actions/github/lib/context.js';
+import { context } from '@actions/github';
 import waitForAllChecks from './waiter.js';
 import { mkdirSync, existsSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -194,7 +194,7 @@ function setFailed(message: string | Error): void {
 
 export async function run(
   waiterFn?: () => Promise<void>,
-  ghCtx = new Context(),
+  ghCtx = new (context.constructor as new () => typeof context)(),
   sshCommandRunner: SshCommandRunner = defaultSshCommandRunner,
 ): Promise<string | void> {
   try {

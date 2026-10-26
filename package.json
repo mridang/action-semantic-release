@@ -41,8 +41,8 @@
   "homepage": "https://github.com/mridang/action-semantic-release",
   "bugs": "https://github.com/mridang/action-semantic-release/issues",
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1",
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
     "@semantic-release/error": "^4.0.0",
     "cosmiconfig": "^9.0.0"
   },
