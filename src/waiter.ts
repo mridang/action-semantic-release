@@ -1,5 +1,5 @@
 /* eslint-disable testing-library/no-debugging-utils */
-import { Context } from '@actions/github/lib/context.js';
+import type { context } from '@actions/github';
 import { getOctokit } from '@actions/github';
 import { debug, info, warning } from '@actions/core';
 
@@ -19,7 +19,7 @@ const CHECK_INTERVAL_MS = 2 * 1000;
  * @throws {Error} if any other check run fails or if the monitoring times out.
  */
 export default async function waitForAllChecks(
-  ghCtx: Context,
+  ghCtx: typeof context,
   token: string,
 ): Promise<void> {
   const octokit = getOctokit(token);
