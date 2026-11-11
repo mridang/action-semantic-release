@@ -15,7 +15,6 @@ import {
 import type { Loader } from 'cosmiconfig';
 import { defaultLoaders } from 'cosmiconfig';
 
-/* eslint-disable jsdoc/require-rejects -- the preset rejects the @rejects tag, so rejections are documented with @throws */
 
 /**
  * Checks whether anything exists at the given path.
@@ -227,4 +226,3 @@ export function createLoaders(allowForce = false) {
     '.ts': iLoader(defaultLoaders['.ts']),
   };
 }
-/* eslint-enable jsdoc/require-rejects -- end of the documented rejection scope */

@@ -64,7 +64,6 @@ async function findExcludedSuites(
   return excludedSuites;
 }
 
-/* eslint-disable jsdoc/require-rejects -- the preset rejects the @rejects tag, so the rejection is documented with @throws */
 
 /**
  * Waits for all *other* GitHub check runs on the current commit to complete
@@ -170,4 +169,3 @@ export default async function waitForAllChecks(
 
   throw new Error('Timed out waiting for check runs to complete.');
 }
-/* eslint-enable jsdoc/require-rejects -- end of the documented rejection scope */

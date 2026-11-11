@@ -135,7 +135,6 @@ const defaultSshCommandRunner: SshCommandRunner = async (command, options) => {
   });
 };
 
-/* eslint-disable jsdoc/require-rejects -- the preset rejects the @rejects tag, so the rejection is documented with @throws */
 
 /**
  * Sets up SSH authentication using a deploy key.
@@ -192,7 +191,6 @@ export async function setupSshKey(
     throw new Error('Failed to set up SSH agent');
   }
 }
-/* eslint-enable jsdoc/require-rejects -- end of the documented rejection scope */
 
 /**
  * Sets the action's failure status with a given message.
