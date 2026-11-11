@@ -15,7 +15,6 @@ import {
 import type { Loader } from 'cosmiconfig';
 import { defaultLoaders } from 'cosmiconfig';
 
-
 /**
  * Checks whether anything exists at the given path.
  * @param target - The absolute path to check.

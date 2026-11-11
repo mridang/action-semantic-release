@@ -6,7 +6,7 @@ import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import path from 'node:path';
-import { readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { builtinModules } from 'node:module';
 import typescript from '@rollup/plugin-typescript';
 
@@ -17,7 +17,7 @@ const NODE_BUILTINS = builtinModules.reduce(
 
 const inlinePackageJsonPlugin = {
   name: 'inline-json',
-  transform(code, id) {
+  async transform(code, id) {
     if (!id.includes('node_modules')) {
       return null;
     }
@@ -25,22 +25,24 @@ const inlinePackageJsonPlugin = {
     const requirePattern =
       /require\((['"`])([-./\w]+?(?:package\.json|commitlint\.schema\.json))\1\)/g;
 
-    const newCode = code.replaceAll(
-      requirePattern,
-      (match, _quote, requiredPath) => {
-        try {
-          const filePath = path.resolve(path.dirname(id), requiredPath);
-          // eslint-disable-next-line n/no-sync -- sync is fine in a script/bootstrap
-          return readFileSync(filePath, 'utf8');
-        } catch (error) {
-          // eslint-disable-next-line unicorn/no-this-outside-of-class -- rollup supplies the plugin context as this
-          this.warn(
-            `Failed to inline '${requiredPath}' for ${id}: ${error.message}`,
-          );
-          return match;
-        }
-      },
-    );
+    let newCode = '';
+    let lastIndex = 0;
+    for (const found of code.matchAll(requirePattern)) {
+      const [match, , requiredPath] = found;
+      let replacement = match;
+      try {
+        const filePath = path.resolve(path.dirname(id), requiredPath);
+        replacement = await readFile(filePath, 'utf8');
+      } catch (error) {
+        // eslint-disable-next-line unicorn/no-this-outside-of-class -- rollup supplies the plugin context as this
+        this.warn(
+          `Failed to inline '${requiredPath}' for ${id}: ${error.message}`,
+        );
+      }
+      newCode += code.slice(lastIndex, found.index) + replacement;
+      lastIndex = found.index + match.length;
+    }
+    newCode += code.slice(lastIndex);
 
     return {
       code: newCode,

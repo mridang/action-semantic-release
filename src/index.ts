@@ -135,7 +135,6 @@ const defaultSshCommandRunner: SshCommandRunner = async (command, options) => {
   });
 };
 
-
 /**
  * Sets up SSH authentication using a deploy key.
  * @param deployKey - The SSH private key content.
@@ -351,7 +350,7 @@ export async function run(
     if (error instanceof Error) {
       setFailed(error);
     } else {
-      setFailed(error as unknown as string);
+      setFailed(String(error));
     }
     return undefined;
   }

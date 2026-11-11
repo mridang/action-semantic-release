@@ -64,7 +64,6 @@ async function findExcludedSuites(
   return excludedSuites;
 }
 
-
 /**
  * Waits for all *other* GitHub check runs on the current commit to complete
  * and be successful.

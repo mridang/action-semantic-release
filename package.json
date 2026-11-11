@@ -90,5 +90,12 @@
   },
   "overrides": {
     "@eslint/core": "1.2.1"
+  },
+  "sideEffects": true,
+  "exports": {
+    ".": {
+      "default": "./dist/main.cjs"
+    },
+    "./package.json": "./package.json"
   }
 }
