@@ -1,23 +1,33 @@
-import {
-  existsSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { join } from 'node:path';
+/**
+ * @file Tests that the cosmiconfig loaders write the package.json and lock
+ * file needed for declarative and imperative semantic-release configurations.
+ */
+import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { cosmiconfig } from 'cosmiconfig';
 import { createLoaders } from '../src/loaders.js';
-import * as YAML from 'yaml';
+import { stringify as toYaml } from 'yaml';
 
+/**
+ * Runs a test body inside a freshly created temporary directory and removes
+ * the directory afterwards, even when the body fails.
+ * @param fn - The test body that receives the temporary directory path.
+ * @returns A function that runs `fn` inside the temporary directory.
+ * @example
+ * ```ts
+ * await withTempDir(async ({ tmp }) => {
+ *   await writeFile(path.join(tmp, '.releaserc.json'), '{}');
+ * })();
+ * ```
+ */
 function withTempDir(fn: (ctx: { tmp: string }) => void | Promise<void>) {
   return async () => {
-    const tmp = mkdtempSync(join(tmpdir(), 'test-'));
+    const tmp = await mkdtemp(path.join(tmpdir(), 'test-'));
     try {
       await fn({ tmp });
     } finally {
-      rmSync(tmp, { recursive: true, force: true });
+      await rm(tmp, { recursive: true, force: true });
     }
   };
 }
@@ -32,9 +42,9 @@ const baseConfig = {
 
 it.each([
   ['.releaserc.json', true, JSON.stringify(baseConfig, null, 2)],
-  ['.releaserc.yaml', true, YAML.stringify(baseConfig)],
-  ['.releaserc.yml', true, YAML.stringify(baseConfig)],
-  ['.releaserc', true, YAML.stringify(baseConfig)],
+  ['.releaserc.yaml', true, toYaml(baseConfig)],
+  ['.releaserc.yml', true, toYaml(baseConfig)],
+  ['.releaserc', true, toYaml(baseConfig)],
   ['release.config.js', false, `module.exports = {};`],
   ['release.config.cjs', false, `module.exports = {};`],
   ['release.config.mjs', false, `export default {};`],
@@ -43,12 +53,12 @@ it.each([
   'correctly handles %s config with isDeclarative = %s',
   (filename, isDeclarative, contents) =>
     withTempDir(async ({ tmp }) => {
-      const filepath = join(tmp, filename);
-      writeFileSync(filepath, contents);
+      const filepath = path.join(tmp, filename);
+      await writeFile(filepath, contents);
 
       if (!isDeclarative) {
-        writeFileSync(
-          join(tmp, 'package.json'),
+        await writeFile(
+          path.join(tmp, 'package.json'),
           JSON.stringify(
             {
               name: 'imperative',
@@ -72,20 +82,20 @@ it.each([
       const result = await explorer.search(tmp);
       expect(result?.filepath).toBe(filepath);
 
-      const pkgJsonPath = join(tmp, 'package.json');
-      const pkgLockPath = join(tmp, 'package-lock.json');
+      const pkgJsonPath = path.join(tmp, 'package.json');
+      const pkgLockPath = path.join(tmp, 'package-lock.json');
 
-      expect(existsSync(pkgJsonPath)).toBe(true);
-      expect(existsSync(pkgLockPath)).toBe(true);
+      await expect(access(pkgJsonPath)).resolves.toBeUndefined();
+      await expect(access(pkgLockPath)).resolves.toBeUndefined();
 
-      const pkgJson = JSON.parse(readFileSync(pkgJsonPath, 'utf8'));
+      const pkgJson = JSON.parse(await readFile(pkgJsonPath, 'utf8'));
       const deps = pkgJson.dependencies || pkgJson.devDependencies;
       expect(deps).toMatchObject({
         '@semantic-release/commit-analyzer': '*',
         '@mridang/semantic-release-peer-version': '*',
       });
 
-      const pkgLock = JSON.parse(readFileSync(pkgLockPath, 'utf8'));
+      const pkgLock = JSON.parse(await readFile(pkgLockPath, 'utf8'));
       expect(pkgLock.packages).toHaveProperty(
         'node_modules/@semantic-release/commit-analyzer',
       );

@@ -1,3 +1,6 @@
+/**
+ * @file Jest configuration for unit and integration tests, bundling the TypeScript sources through ts-jest.
+ */
 export default {
   preset: 'ts-jest/presets/default-esm',
   transform: {
@@ -35,7 +38,7 @@ export default {
   collectCoverageFrom: ['src/**/*.{ts,tsx,js,jsx}', '!src/**/*.d.ts'],
   coverageReporters: ['lcov', 'text'],
   coveragePathIgnorePatterns: ['/dist/', '/node_modules/'],
-  testTimeout: 60000,
+  testTimeout: 60_000,
   extensionsToTreatAsEsm: ['.ts', '.tsx', '.mts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',

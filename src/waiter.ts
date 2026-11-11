@@ -1,10 +1,68 @@
-/* eslint-disable testing-library/no-debugging-utils */
+/**
+ * @file Waits for the other GitHub check runs on the current commit to finish
+ * successfully before the release is allowed to proceed.
+ */
 import type { context } from '@actions/github';
 import { getOctokit } from '@actions/github';
-import { debug, info, warning } from '@actions/core';
+import { debug as logDebug, info, warning } from '@actions/core';
 
 const CHECK_TIMEOUT_MS = 20 * 60 * 1000;
 const CHECK_INTERVAL_MS = 2 * 1000;
+const PASSING_CONCLUSIONS = new Set(['success', 'skipped', 'neutral']);
+
+/**
+ * Tells whether a finished check run counts as a pass.
+ * @param conclusion - The conclusion reported for the check run, if any.
+ * @returns `true` for success, skipped and neutral conclusions.
+ * @example
+ * ```ts
+ * const passed = isPassing('success'); // true
+ * ```
+ */
+function isPassing(conclusion: string | null | undefined): boolean {
+  return PASSING_CONCLUSIONS.has(conclusion ?? '');
+}
+
+/**
+ * Collects the check suites that belong to workflow runs not triggered by the
+ * release event, such as scheduled or dynamic runs. Their checks are ignored.
+ * If the workflow runs cannot be listed, no suite is excluded and a warning is raised.
+ * @param octokit - The authenticated GitHub API client.
+ * @param owner - The owner of the repository.
+ * @param repo - The name of the repository.
+ * @param ref - The commit SHA the checks are attached to.
+ * @param allowedEvents - The events whose check suites must still be evaluated.
+ * @returns The IDs of the check suites to exclude.
+ * @example
+ * ```ts
+ * const excluded = await findExcludedSuites(octokit, 'owner', 'repo', sha, new Set(['push']));
+ * ```
+ */
+async function findExcludedSuites(
+  octokit: ReturnType<typeof getOctokit>,
+  owner: string,
+  repo: string,
+  ref: string,
+  allowedEvents: Set<string>,
+): Promise<Set<number>> {
+  const excludedSuites = new Set<number>();
+  try {
+    const workflowRuns = await octokit.paginate(
+      octokit.rest.actions.listWorkflowRunsForRepo,
+      { owner, repo, head_sha: ref, per_page: 100 },
+    );
+    for (const run of workflowRuns) {
+      if (!allowedEvents.has(run.event) && run.check_suite_id !== undefined) {
+        excludedSuites.add(run.check_suite_id);
+      }
+    }
+  } catch (error) {
+    warning(
+      `Could not list workflow runs (needs actions: read on private repositories), so checks from non-push runs are not excluded: ${error}`,
+    );
+  }
+  return excludedSuites;
+}
 
 /**
  * Waits for all *other* GitHub check runs on the current commit to complete
@@ -12,11 +70,14 @@ const CHECK_INTERVAL_MS = 2 * 1000;
  *
  * This version includes a refined heuristic based on the list of PENDING checks
  * to correctly identify and bypass a deadlock caused by a custom job name.
- *
  * @param ghCtx - The GitHub Actions context object.
  * @param token - The GitHub token for API authentication.
  * @returns A Promise that resolves when all other check runs are successful.
- * @throws {Error} if any other check run fails or if the monitoring times out.
+ * @throws If any other check run fails or if the monitoring times out.
+ * @example
+ * ```ts
+ * await waitForAllChecks(context, process.env.GITHUB_TOKEN ?? '');
+ * ```
  */
 export default async function waitForAllChecks(
   ghCtx: typeof context,
@@ -29,7 +90,7 @@ export default async function waitForAllChecks(
   const deadline = Date.now() + CHECK_TIMEOUT_MS;
 
   info(`Starting check run monitoring for ref ${ref}`);
-  debug(`Identifying self as job ID: '${selfIdentifier}'`);
+  logDebug(`Identifying self as job ID: '${selfIdentifier}'`);
 
   const allowedEvents = new Set(['push', ghCtx.eventName]);
 
@@ -42,22 +103,13 @@ export default async function waitForAllChecks(
     });
     // Scheduled and dynamic runs (e.g. Dependabot) attach to the latest commit
     // of the default branch but are unrelated to the release being gated.
-    const excludedSuites = new Set<number>();
-    try {
-      const workflowRuns = await octokit.paginate(
-        octokit.rest.actions.listWorkflowRunsForRepo,
-        { owner, repo, head_sha: ref, per_page: 100 },
-      );
-      for (const run of workflowRuns) {
-        if (!allowedEvents.has(run.event) && run.check_suite_id !== undefined) {
-          excludedSuites.add(run.check_suite_id);
-        }
-      }
-    } catch (error) {
-      warning(
-        `Could not list workflow runs (needs actions: read on private repositories), so checks from non-push runs are not excluded: ${error}`,
-      );
-    }
+    const excludedSuites = await findExcludedSuites(
+      octokit,
+      owner,
+      repo,
+      ref,
+      allowedEvents,
+    );
     const allRuns = checkRuns.filter(
       (run) =>
         run.check_suite?.id === undefined ||
@@ -93,23 +145,13 @@ export default async function waitForAllChecks(
     );
 
     if (pendingOtherRuns.length === 0) {
-      const allSuccessful = otherRuns.every(
-        (run) =>
-          run.conclusion === 'success' ||
-          run.conclusion === 'skipped' ||
-          run.conclusion === 'neutral',
-      );
+      const allSuccessful = otherRuns.every((run) => isPassing(run.conclusion));
 
       if (allSuccessful) {
         info('All other check runs have completed successfully.');
         return;
       } else {
-        const failedCheck = otherRuns.find(
-          (run) =>
-            run.conclusion !== 'success' &&
-            run.conclusion !== 'skipped' &&
-            run.conclusion !== 'neutral',
-        );
+        const failedCheck = otherRuns.find((run) => !isPassing(run.conclusion));
         throw new Error(
           `Check '${failedCheck?.name}' failed with conclusion: ${failedCheck?.conclusion}.`,
         );

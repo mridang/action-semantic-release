@@ -1,3 +1,6 @@
+/**
+ * @file Unit tests for the check-waiting logic, using mocked GitHub API responses.
+ */
 import { jest } from '@jest/globals';
 
 type Check = {
@@ -29,9 +32,8 @@ jest.unstable_mockModule('@actions/core', () => ({
   warning,
 }));
 
-const { Context } = await import(
-  '../node_modules/@actions/github/lib/context.js'
-);
+const { Context } =
+  await import('../node_modules/@actions/github/lib/context.js');
 const { default: waitForAllChecks } = await import('../src/waiter.js');
 
 const ctxFor = (eventName: string) => {
