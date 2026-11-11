@@ -59,7 +59,7 @@ class InlinePackageJsonPlugin {
  * Creates the Rollup configuration that bundles the action into `dist/main.cjs`.
  * @param {object} [configOverrides] - Optional overrides; `typescript` is merged into the
  * `@rollup/plugin-typescript` options.
- * @returns {object} The Rollup input and output options.
+ * @returns {import('rollup').RollupOptions & { output: import('rollup').OutputOptions }} The Rollup input and output options.
  * @example
  * ```js
  * import createRollupConfig from './rollup.config.mjs';
