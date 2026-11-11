@@ -8,11 +8,11 @@ import { withTempDir } from './helpers/with-temp-dir.js';
 import { withGitRepo } from './helpers/with-git-repo.js';
 import { withEnvVars } from './helpers/with-env-vars.js';
 import { tmpdir } from 'node:os';
-import { pathToFileURL } from 'node:url';
 import { rollup } from 'rollup';
 import { createRequire } from 'node:module';
 import vm, { constants as VM } from 'node:vm';
 import jwt from 'jsonwebtoken';
+import createRollupConfig from '../rollup.config.mjs';
 
 /**
  * Bundle the project using the local rollup.config.mjs and write the output
@@ -26,11 +26,6 @@ import jwt from 'jsonwebtoken';
  * ```
  */
 export async function bundleToPath(): Promise<string> {
-  // eslint-disable-next-line no-unsanitized/method -- rollup.config.mjs is a trusted file in this repository
-  const { default: createRollupConfig } = await import(
-    pathToFileURL(path.resolve('rollup.config.mjs')).href
-  );
-
   const testConfig = createRollupConfig({
     typescript: {
       outDir: null,
@@ -129,7 +124,7 @@ async function runAction(
       Object.getOwnPropertyDescriptors(globalThis),
     );
     vm.createContext(context);
-    // eslint-disable-next-line sonarjs/code-eval -- the test runs the built action bundle in a VM context by design
+    // eslint-disable-next-line sonarjs/code-eval -- the test must evaluate the freshly built bundle in an isolated VM context with custom globals; vm.runInContext, new vm.Script and vm.compileFunction all trip this rule, and a child process would lose the injected globals and the bundle's completion value
     const result = vm.runInContext(script, context, {
       filename: actionScript,
       importModuleDynamically: VM.USE_MAIN_CONTEXT_DEFAULT_LOADER,

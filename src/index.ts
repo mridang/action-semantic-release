@@ -156,8 +156,7 @@ export async function setupSshKey(
   const sshDir = path.join(home, '.ssh');
   const keyPath = path.join(sshDir, 'id_rsa');
   // The agent socket must sit at a fixed path so later steps can reuse SSH_AUTH_SOCK.
-  // eslint-disable-next-line sonarjs/publicly-writable-directories -- ssh-agent needs a fixed socket path shared with later steps
-  const socketPath = '/tmp/ssh_agent.sock';
+  const socketPath = path.join(sshDir, 'ssh_agent.sock');
 
   await mkdir(sshDir, { recursive: true, mode: 0o700 });
   await writeFile(keyPath, deployKey + '\n', { mode: 0o600 });

@@ -15,8 +15,13 @@ const NODE_BUILTINS = builtinModules.reduce(
   [],
 );
 
-const inlinePackageJsonPlugin = {
-  name: 'inline-json',
+/**
+ * Rollup plugin that inlines the package.json files that dependencies require. It is a class so that the
+ * plugin context Rollup passes as this to each hook is a legitimate use of this.
+ */
+class InlinePackageJsonPlugin {
+  name = 'inline-json';
+
   async transform(code, id) {
     if (!id.includes('node_modules')) {
       return null;
@@ -34,7 +39,6 @@ const inlinePackageJsonPlugin = {
         const filePath = path.resolve(path.dirname(id), requiredPath);
         replacement = await readFile(filePath, 'utf8');
       } catch (error) {
-        // eslint-disable-next-line unicorn/no-this-outside-of-class -- rollup supplies the plugin context as this
         this.warn(
           `Failed to inline '${requiredPath}' for ${id}: ${error.message}`,
         );
@@ -48,8 +52,8 @@ const inlinePackageJsonPlugin = {
       code: newCode,
       map: null,
     };
-  },
-};
+  }
+}
 
 /**
  * Creates the Rollup configuration that bundles the action into `dist/main.cjs`.
@@ -98,7 +102,7 @@ function createRollupConfig(configOverrides = {}) {
         preferConst: true,
         compact: true,
       }),
-      inlinePackageJsonPlugin,
+      new InlinePackageJsonPlugin(),
       resolve({
         exportConditions: ['node', 'default'],
         preferBuiltins: true,
