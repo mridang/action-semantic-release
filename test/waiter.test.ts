@@ -1,3 +1,6 @@
+/**
+ * @file Unit tests for the check-waiting logic, using mocked GitHub API responses.
+ */
 import { jest } from '@jest/globals';
 
 type Check = {

@@ -1,4 +1,6 @@
-// noinspection JSUnusedGlobalSymbols
+/**
+ * @file The semantic-release configuration that defines the plugins and publishing steps for this action.
+ */
 export default {
   plugins: [
     '@semantic-release/commit-analyzer',

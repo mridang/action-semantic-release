@@ -1,8 +1,9 @@
-import * as fs from 'node:fs';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import * as path from 'node:path';
-import { join } from 'node:path';
-// noinspection ES6PreferShortImport
+/**
+ * @file End-to-end tests that bundle the action with Rollup, run the bundle in
+ * a VM context and exercise it against a local Git repository.
+ */
+import { copyFile, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { withTempDir } from './helpers/with-temp-dir.js';
 import { withGitRepo } from './helpers/with-git-repo.js';
 import { withEnvVars } from './helpers/with-env-vars.js';
@@ -12,34 +13,37 @@ import { rollup } from 'rollup';
 import { createRequire } from 'node:module';
 import vm, { constants as VM } from 'node:vm';
 import jwt from 'jsonwebtoken';
-import * as os from 'node:os';
 
 /**
  * Bundle the project using the local rollup.config.mjs and write the output
- * to "<outputDir>/.test-bundles/bundle-<timestamp>.cjs".
+ * to a temporary directory as "bundle-<timestamp>.cjs".
  * Returns the absolute path to the generated bundle so tests can load it
- * with `fs.readFileSync`, `vm.runInContext`, etc.
+ * with `readFile`, `vm.runInContext`, etc.
  * @returns Absolute path of the generated CommonJS bundle.
+ * @example
+ * ```ts
+ * const bundlePath = await bundleToPath();
+ * ```
  */
 export async function bundleToPath(): Promise<string> {
-  // eslint-disable-next-line no-unsanitized/method
+  // eslint-disable-next-line no-unsanitized/method -- rollup.config.mjs is a trusted file in this repository
   const { default: createRollupConfig } = await import(
     pathToFileURL(path.resolve('rollup.config.mjs')).href
   );
 
   const testConfig = createRollupConfig({
     typescript: {
-      outDir: undefined,
+      outDir: null,
       declaration: false,
       sourceMap: true,
     },
   });
 
   const bundle = await rollup(testConfig);
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-bundle-'));
+  const tempDir = await mkdtemp(path.join(tmpdir(), 'test-bundle-'));
   const outputFile = path.join(tempDir, `bundle-${Date.now()}.cjs`);
 
-  fs.copyFileSync(
+  await copyFile(
     path.join(process.cwd(), 'tsconfig.json'),
     path.join(tempDir, 'tsconfig.json'),
   );
@@ -62,21 +66,26 @@ export async function bundleToPath(): Promise<string> {
  * @param extraEnv - A record of additional environment variables to set
  * during the action's execution, used to simulate workflow context
  * like `GITHUB_REF` or `GITHUB_EVENT_NAME`.
- * @param eventPayload
- * @returns A promise that resolves with the action's result or void.
+ * @param eventPayload - The JSON payload written to the event file that
+ * `GITHUB_EVENT_PATH` points to.
+ * @returns A promise that resolves with the captured job summary.
+ * @example
+ * ```ts
+ * const { summary } = await runAction({ 'github-token': 'fake-token' });
+ * ```
  */
 async function runAction(
   inputs: Record<string, string>,
-  extraEnv: Record<string, string | undefined> = {},
+  extraEnv: Record<string, string | null> = {},
   eventPayload: unknown = {},
 ): Promise<{ summary: string }> {
-  const summaryDir = mkdtempSync(join(tmpdir(), 'test-'));
-  const summaryPath = join(summaryDir, 'summary.md');
-  writeFileSync(summaryPath, '');
+  const summaryDir = await mkdtemp(path.join(tmpdir(), 'test-'));
+  const summaryPath = path.join(summaryDir, 'summary.md');
+  await writeFile(summaryPath, '');
 
-  const eventDir = mkdtempSync(join(tmpdir(), 'test-'));
-  const eventPath = join(eventDir, 'event.json');
-  writeFileSync(eventPath, JSON.stringify(eventPayload));
+  const eventDir = await mkdtemp(path.join(tmpdir(), 'test-'));
+  const eventPath = path.join(eventDir, 'event.json');
+  await writeFile(eventPath, JSON.stringify(eventPayload));
 
   const env = {
     ...extraEnv,
@@ -101,12 +110,12 @@ async function runAction(
       },
       'dummy-secret',
     ),
-    ACTIONS_RESULTS_URL: 'http://results.local:8080',
+    ACTIONS_RESULTS_URL: 'https://results.local:8080',
   };
 
   const wrappedRun = withEnvVars(env, async () => {
     const actionScript = await bundleToPath();
-    const script = fs.readFileSync(actionScript, 'utf8');
+    const script = await readFile(actionScript, 'utf8');
     const context = {
       ...process.env,
       require: createRequire(import.meta.url),
@@ -120,6 +129,7 @@ async function runAction(
       Object.getOwnPropertyDescriptors(globalThis),
     );
     vm.createContext(context);
+    // eslint-disable-next-line sonarjs/code-eval -- the test runs the built action bundle in a VM context by design
     const result = vm.runInContext(script, context, {
       filename: actionScript,
       importModuleDynamically: VM.USE_MAIN_CONTEXT_DEFAULT_LOADER,
@@ -130,7 +140,7 @@ async function runAction(
   });
   await wrappedRun();
 
-  const summaryContent = readFileSync(summaryPath, 'utf8');
+  const summaryContent = await readFile(summaryPath, 'utf8');
   return { summary: summaryContent };
 }
 
@@ -173,8 +183,8 @@ test.each(matrix)(
           'feat: another feat',
         ],
         async ({ tmp, remoteUrl }) => {
-          writeFileSync(
-            join(tmp, '.releaserc.json'),
+          await writeFile(
+            path.join(tmp, '.releaserc.json'),
             JSON.stringify({
               branches: ['master'],
               plugins: ['@semantic-release/commit-analyzer'],
@@ -196,7 +206,7 @@ test.each(matrix)(
               GITHUB_SHA: 'abc123',
               GITHUB_REPOSITORY: 'user/repo',
               GITHUB_TOKEN: '*******',
-              GITHUB_ACTIONS: undefined,
+              GITHUB_ACTIONS: null,
             },
           );
         },

@@ -1,20 +1,22 @@
+/**
+ * @file Integration tests for the action entrypoint that run `run` against a
+ * real local Git repository and check the outcome for each event type.
+ */
 import { expect } from '@jest/globals';
 import {
-  mkdtempSync,
-  writeFileSync,
-  existsSync,
-  statSync,
-  appendFileSync,
-  mkdirSync,
-} from 'node:fs';
-import { join } from 'node:path';
-// noinspection ES6PreferShortImport
+  access,
+  appendFile,
+  mkdir,
+  mkdtemp,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
+import path from 'node:path';
+import { tmpdir } from 'node:os';
 import { run, type SshCommandRunner } from '../src/index.js';
-import { Context } from '../node_modules/@actions/github/lib/context.js';
 import { withTempDir } from './helpers/with-temp-dir.js';
 import { withGitRepo } from './helpers/with-git-repo.js';
 import { withEnvVars } from './helpers/with-env-vars.js';
-import { tmpdir } from 'node:os';
 import forge from 'node-forge';
 
 /**
@@ -26,25 +28,34 @@ import forge from 'node-forge';
  * inputs, equivalent to the `with` block in a workflow YAML file.
  * @param extraEnv - A record of additional environment variables to set
  * during the action's execution, used to simulate workflow context
- * like `GITHUB_REF` or `GITHUB_EVENT_NAME`.
+ * like `GITHUB_REF` or `GITHUB_EVENT_NAME`. A `null` value unsets the variable.
  * @param waiterFn - An optional async function that can be passed to the
  * underlying `run` function, typically used for testing race
  * conditions or waiting for asynchronous operations.
+ * @param sshCommandRunner - An optional stub that replaces the real SSH
+ * command runner.
  * @returns A promise that resolves with the action's result or void.
+ * @example
+ * ```ts
+ * await runAction(
+ *   { 'github-token': 'fake-token', 'working-directory': tmp },
+ *   { GITHUB_EVENT_NAME: 'push', GITHUB_REF: 'refs/heads/master' },
+ * );
+ * ```
  */
 async function runAction(
   inputs: Record<string, string>,
-  extraEnv: Record<string, string | undefined> = {},
+  extraEnv: Record<string, string | null> = {},
   waiterFn?: () => Promise<void>,
   sshCommandRunner?: SshCommandRunner,
 ): Promise<string | void> {
-  const summaryDir = mkdtempSync(join(tmpdir(), 'test-'));
-  const summaryPath = join(summaryDir, 'summary.md');
-  writeFileSync(summaryPath, '');
+  const summaryDir = await mkdtemp(path.join(tmpdir(), 'test-'));
+  const summaryPath = path.join(summaryDir, 'summary.md');
+  await writeFile(summaryPath, '');
 
-  const eventDir = mkdtempSync(join(tmpdir(), 'test-'));
-  const eventPath = join(eventDir, 'event.json');
-  writeFileSync(eventPath, JSON.stringify({}));
+  const eventDir = await mkdtemp(path.join(tmpdir(), 'test-'));
+  const eventPath = path.join(eventDir, 'event.json');
+  await writeFile(eventPath, JSON.stringify({}));
 
   const wrapped = withEnvVars(
     {
@@ -58,7 +69,7 @@ async function runAction(
       GITHUB_STEP_SUMMARY: summaryPath,
       GITHUB_EVENT_PATH: eventPath,
     },
-    () => run(waiterFn, new Context(), sshCommandRunner),
+    () => run(waiterFn, undefined, sshCommandRunner),
   );
   return await wrapped();
 }
@@ -102,8 +113,8 @@ test.each(matrix)(
           'feat: another feat',
         ],
         async ({ tmp, remoteUrl }) => {
-          writeFileSync(
-            join(tmp, '.releaserc.json'),
+          await writeFile(
+            path.join(tmp, '.releaserc.json'),
             JSON.stringify({
               branches: ['master'],
               plugins: ['@semantic-release/commit-analyzer'],
@@ -130,7 +141,7 @@ test.each(matrix)(
               GITHUB_SHA: 'abc123',
               GITHUB_REPOSITORY: 'user/repo',
               GITHUB_TOKEN: '*******',
-              GITHUB_ACTIONS: undefined,
+              GITHUB_ACTIONS: null,
             },
             waiterFn,
           );
@@ -151,8 +162,8 @@ test('configures SSH deploy key when provided', () => {
     withGitRepo(
       ['chore: init', 'feat: some feature'],
       async ({ tmp, remoteUrl }) => {
-        writeFileSync(
-          join(tmp, '.releaserc.json'),
+        await writeFile(
+          path.join(tmp, '.releaserc.json'),
           JSON.stringify({
             branches: ['master'],
             plugins: ['@semantic-release/commit-analyzer'],
@@ -165,22 +176,20 @@ test('configures SSH deploy key when provided', () => {
         const keypair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
         const privateKeyPem = forge.ssh.privateKeyToOpenSSH(keypair.privateKey);
 
-        const sshDir = join(tmp, '.ssh');
-        const keyPath = join(sshDir, 'id_rsa');
-        const knownHostsPath = join(sshDir, 'known_hosts');
+        const sshDir = path.join(tmp, '.ssh');
+        const keyPath = path.join(sshDir, 'id_rsa');
+        const knownHostsPath = path.join(sshDir, 'known_hosts');
 
         const commands: string[] = [];
-        const sshCommandRunner: SshCommandRunner = (command) => {
+        const sshCommandRunner: SshCommandRunner = async (command) => {
           commands.push(command);
           if (command.startsWith('ssh-keyscan')) {
             // Real ssh-keyscan would append host keys to known_hosts via
             // shell redirection; emulate just the file-write side-effect
             // so we can assert the action wires it up correctly without
             // depending on the binary being installed.
-            if (!existsSync(sshDir)) {
-              mkdirSync(sshDir, { recursive: true, mode: 0o700 });
-            }
-            appendFileSync(knownHostsPath, 'github.com ssh-rsa AAAA-stub\n');
+            await mkdir(sshDir, { recursive: true, mode: 0o700 });
+            await appendFile(knownHostsPath, 'github.com ssh-rsa AAAA-stub\n');
             return;
           }
           if (
@@ -207,17 +216,17 @@ test('configures SSH deploy key when provided', () => {
             GITHUB_SHA: 'abc123',
             GITHUB_REPOSITORY: 'user/repo',
             GITHUB_TOKEN: '*******',
-            GITHUB_ACTIONS: undefined,
+            GITHUB_ACTIONS: null,
             HOME: tmp,
           },
           undefined,
           sshCommandRunner,
         );
 
-        expect(existsSync(keyPath)).toBe(true);
-        expect(existsSync(knownHostsPath)).toBe(true);
+        await expect(access(keyPath)).resolves.toBeUndefined();
+        await expect(access(knownHostsPath)).resolves.toBeUndefined();
 
-        const stats = statSync(keyPath);
+        const stats = await stat(keyPath);
         expect(stats.mode & 0o777).toBe(0o600);
 
         expect(

@@ -1,6 +1,10 @@
+/**
+ * @file Test helper that serves a freshly created Git repository over HTTP
+ * for end-to-end tests of Git operations.
+ */
 import { SimpleGit, simpleGit } from 'simple-git';
-import { mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
 import type { AddressInfo, Server as HttpServer } from 'node:net';
 import { Git } from 'node-git-server';
 
@@ -11,14 +15,23 @@ type GitRepoContext = { tmp: string; remoteUrl: string };
  *
  * This function creates a fully isolated Git test environment over HTTP,
  * preventing any overlap or state leakage between tests.
+ * @param commits - The commit messages to create, in order, on the `master` branch.
+ * @param fn - The test body that receives the local checkout path and the remote URL.
+ * @returns A function that sets up the repository inside the given directory and runs `fn`.
+ * @example
+ * ```ts
+ * await withGitRepo(['feat: init'], async ({ tmp, remoteUrl }) => {
+ *   console.log(tmp, remoteUrl);
+ * })({ tmp: await mkdtemp(path.join(os.tmpdir(), 'repo-')) });
+ * ```
  */
 export function withGitRepo(
   commits: string[],
   fn: (ctx: GitRepoContext) => Promise<void>,
 ) {
   return async ({ tmp: baseTmp }: { tmp: string }): Promise<void> => {
-    const repoDir = join(baseTmp, 'repos');
-    mkdirSync(repoDir, { recursive: true });
+    const repoDir = path.join(baseTmp, 'repos');
+    await mkdir(repoDir, { recursive: true });
 
     const server = new Git(repoDir, {
       autoCreate: true,
@@ -38,8 +51,8 @@ export function withGitRepo(
       });
 
       const remoteUrl = `http://127.0.0.1:${port}/remote.git`;
-      const localPath = join(baseTmp, 'local');
-      mkdirSync(localPath);
+      const localPath = path.join(baseTmp, 'local');
+      await mkdir(localPath);
 
       const git: SimpleGit = simpleGit(localPath);
 

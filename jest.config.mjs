@@ -1,3 +1,6 @@
+/**
+ * @file Jest configuration for unit and integration tests, bundling the TypeScript sources through ts-jest.
+ */
 export default {
   preset: 'ts-jest/presets/default-esm',
   transform: {

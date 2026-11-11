@@ -1,6 +1,10 @@
-import { mkdtempSync } from 'node:fs';
+/**
+ * @file Test helper that creates a temporary directory for an asynchronous
+ * test body.
+ */
+import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import path from 'node:path';
 
 /**
  * A higher-order function that creates a temporary directory for an
@@ -17,13 +21,19 @@ import { join } from 'node:path';
  * containing the `tmp` property, which is the path to the created
  * temporary directory.
  * @returns A new async function that, when called, will set up the
- * temporary directory, run the provided function, and perform cleanup.
+ * temporary directory and run the provided function.
+ * @example
+ * ```ts
+ * await withTempDir(async ({ tmp }) => {
+ *   await writeFile(path.join(tmp, 'notes.txt'), 'hello');
+ * })();
+ * ```
  */
 export function withTempDir<T extends (ctx: { tmp: string }) => Promise<void>>(
   fn: T,
 ) {
   return async () => {
-    const tmp = mkdtempSync(join(tmpdir(), 'test-'));
+    const tmp = await mkdtemp(path.join(tmpdir(), 'test-'));
     await fn({ tmp });
   };
 }
