@@ -10,11 +10,10 @@ import { join } from 'node:path';
  * need to create files or clone repositories. The temporary directory
  * and all its contents are automatically deleted after the provided
  * function has finished executing, even if it throws an error.
- *
  * @template T The type of the function to execute, which must accept
  * a context object with the temporary directory path (`tmp`) and
  * return a Promise.
- * @param fn The asynchronous function to execute. It receives an object
+ * @param fn - The asynchronous function to execute. It receives an object
  * containing the `tmp` property, which is the path to the created
  * temporary directory.
  * @returns A new async function that, when called, will set up the

@@ -12,11 +12,10 @@ const CHECK_INTERVAL_MS = 2 * 1000;
  *
  * This version includes a refined heuristic based on the list of PENDING checks
  * to correctly identify and bypass a deadlock caused by a custom job name.
- *
  * @param ghCtx - The GitHub Actions context object.
  * @param token - The GitHub token for API authentication.
  * @returns A Promise that resolves when all other check runs are successful.
- * @throws {Error} if any other check run fails or if the monitoring times out.
+ * @throws {Error} If any other check run fails or if the monitoring times out.
  */
 export default async function waitForAllChecks(
   ghCtx: typeof context,

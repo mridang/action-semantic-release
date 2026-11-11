@@ -7,7 +7,7 @@ import * as nodules from 'node:module';
 import typescript from '@rollup/plugin-typescript';
 
 const NODE_BUILTINS = nodules.builtinModules.reduce(
-  (acc, name) => acc.concat([name, `node:${name}`]),
+  (acc, name) => [...acc, name, `node:${name}`],
   [],
 );
 
@@ -21,15 +21,15 @@ const inlinePackageJsonPlugin = {
     const requirePattern =
       /require\((['"`])([-./\w]+?(?:package\.json|commitlint\.schema\.json))\1\)/g;
 
-    const newCode = code.replace(
+    const newCode = code.replaceAll(
       requirePattern,
       (match, quote, requiredPath) => {
         try {
           const filePath = r(dirname(id), requiredPath);
           return readFileSync(filePath, 'utf-8');
-        } catch (e) {
+        } catch (error) {
           this.warn(
-            `Failed to inline '${requiredPath}' for ${id}: ${e.message}`,
+            `Failed to inline '${requiredPath}' for ${id}: ${error.message}`,
           );
           return match;
         }
@@ -66,10 +66,12 @@ export default (configOverrides = {}) => ({
   onwarn(warning, warn) {
     switch (warning.code) {
       case 'CIRCULAR_DEPENDENCY':
-      case 'THIS_IS_UNDEFINED':
+      case 'THIS_IS_UNDEFINED': {
         return;
-      default:
+      }
+      default: {
         warn(warning);
+      }
     }
   },
   plugins: [

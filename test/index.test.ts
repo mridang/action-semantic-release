@@ -22,13 +22,12 @@ import forge from 'node-forge';
  * controlled environment. It simulates the GitHub Actions runtime by
  * preparing environment variables and mocking necessary features like
  * Job Summaries.
- *
- * @param inputs A record of key-value pairs representing the action's
+ * @param inputs - A record of key-value pairs representing the action's
  * inputs, equivalent to the `with` block in a workflow YAML file.
- * @param extraEnv A record of additional environment variables to set
+ * @param extraEnv - A record of additional environment variables to set
  * during the action's execution, used to simulate workflow context
  * like `GITHUB_REF` or `GITHUB_EVENT_NAME`.
- * @param waiterFn An optional async function that can be passed to the
+ * @param waiterFn - An optional async function that can be passed to the
  * underlying `run` function, typically used for testing race
  * conditions or waiting for asynchronous operations.
  * @returns A promise that resolves with the action's result or void.
@@ -52,7 +51,7 @@ async function runAction(
       ...extraEnv,
       ...Object.fromEntries(
         Object.entries(inputs).map(([key, value]) => [
-          `INPUT_${key.replace(/ /g, '_').toUpperCase()}`,
+          `INPUT_${key.replaceAll(' ', '_').toUpperCase()}`,
           value,
         ]),
       ),

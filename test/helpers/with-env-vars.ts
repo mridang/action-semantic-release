@@ -5,10 +5,9 @@
  * It guarantees that the original environment is restored even if the
  * wrapped function fails. Pass a string value to set a variable, or
  * `undefined` to temporarily unset (delete) it.
- *
- * @param env An object where keys are variable names and values are the
+ * @param env - An object where keys are variable names and values are the
  * string to set, or `undefined` to unset the variable.
- * @param fn The asynchronous function to execute.
+ * @param fn - The asynchronous function to execute.
  * @returns A new async function that will run with the modified environment.
  */
 export function withEnvVars<T>(

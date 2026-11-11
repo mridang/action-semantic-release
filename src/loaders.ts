@@ -11,7 +11,6 @@ import { defaultLoaders } from 'cosmiconfig';
  * and generates a package.json file with versions if specified.
  *
  * Will throw if a package.json already exists in the directory.
- *
  * @param loader - The base loader to parse the configuration file.
  * @returns A loader that prepares a package.json for npm install.
  */
@@ -80,7 +79,6 @@ function declarativeLoader(loader: Loader): Loader {
 /**
  * Creates a loader that runs `npm install` in the config file's directory.
  * If allowForce is true, it will use the --force flag.
- *
  * @param loader - The base loader to parse the configuration file.
  * @param allowForce - Whether to use `npm install --force`.
  * @returns A loader that installs dependencies using npm.
@@ -102,12 +100,12 @@ function imperativeLoader(loader: Loader, allowForce: boolean): Loader {
         cwd,
         stdio: 'inherit',
       });
-    } catch (err) {
+    } catch (error_) {
       error('npm install failed');
-      if (err instanceof Error) {
-        error(err.message);
+      if (error_ instanceof Error) {
+        error(error_.message);
       }
-      throw err;
+      throw error_;
     } finally {
       endGroup();
     }
@@ -119,7 +117,6 @@ function imperativeLoader(loader: Loader, allowForce: boolean): Loader {
 /**
  * REFACTORED: Creates a loaders object for cosmiconfig, configured with the
  * allowForce flag.
- *
  * @param allowForce - If true, enables force-install and overwriting package.json.
  * @returns A cosmiconfig loaders object.
  */
