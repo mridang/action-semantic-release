@@ -307,7 +307,9 @@ async function executeAction(
       env: {
         ...process.env,
         GITHUB_TOKEN: githubToken,
-        SSH_AUTH_SOCK: process.env.SSH_AUTH_SOCK,
+        ...(process.env.SSH_AUTH_SOCK !== undefined && {
+          SSH_AUTH_SOCK: process.env.SSH_AUTH_SOCK,
+        }),
       },
     },
   );
