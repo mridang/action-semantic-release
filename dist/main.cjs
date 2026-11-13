@@ -29625,7 +29625,7 @@ function requireBuild () {
 	return build;
 }
 
-var lib$7 = {};
+var lib$6 = {};
 
 var picocolors = {exports: {}};
 
@@ -29745,7 +29745,7 @@ function requireJsTokens () {
 	return jsTokens;
 }
 
-var lib$6 = {};
+var lib$5 = {};
 
 var identifier = {};
 
@@ -29870,11 +29870,11 @@ function requireKeyword () {
 	return keyword;
 }
 
-var hasRequiredLib$7;
+var hasRequiredLib$6;
 
-function requireLib$7 () {
-	if (hasRequiredLib$7) return lib$6;
-	hasRequiredLib$7 = 1;
+function requireLib$6 () {
+	if (hasRequiredLib$6) return lib$5;
+	hasRequiredLib$6 = 1;
 	(function (exports) {
 
 		Object.defineProperty(exports, "__esModule", {
@@ -29932,21 +29932,21 @@ function requireLib$7 () {
 		var _keyword = requireKeyword();
 
 		
-	} (lib$6));
-	return lib$6;
+	} (lib$5));
+	return lib$5;
 }
 
-var hasRequiredLib$6;
+var hasRequiredLib$5;
 
-function requireLib$6 () {
-	if (hasRequiredLib$6) return lib$7;
-	hasRequiredLib$6 = 1;
+function requireLib$5 () {
+	if (hasRequiredLib$5) return lib$6;
+	hasRequiredLib$5 = 1;
 
-	Object.defineProperty(lib$7, '__esModule', { value: true });
+	Object.defineProperty(lib$6, '__esModule', { value: true });
 
 	var picocolors = /*@__PURE__*/ requirePicocolors();
 	var jsTokens = requireJsTokens();
-	var helperValidatorIdentifier = requireLib$7();
+	var helperValidatorIdentifier = requireLib$6();
 
 	function isColorSupported() {
 	  return (typeof process === "object" && (process.env.FORCE_COLOR === "0" || process.env.FORCE_COLOR === "false") ? false : picocolors.isColorSupported
@@ -30153,11 +30153,11 @@ function requireLib$6 () {
 	  return codeFrameColumns(rawLines, location, opts);
 	}
 
-	lib$7.codeFrameColumns = codeFrameColumns;
-	lib$7.default = index;
-	lib$7.highlight = highlight;
+	lib$6.codeFrameColumns = codeFrameColumns;
+	lib$6.default = index;
+	lib$6.highlight = highlight;
 	
-	return lib$7;
+	return lib$6;
 }
 
 var parseJson_1;
@@ -30169,7 +30169,7 @@ function requireParseJson$1 () {
 	const errorEx = requireErrorEx();
 	const fallback = requireJsonParseEvenBetterErrors();
 	const {default: LinesAndColumns} = requireBuild();
-	const {codeFrameColumns} = requireLib$6();
+	const {codeFrameColumns} = requireLib$5();
 
 	const JSONError = errorEx('JSONError', {
 		fileName: errorEx.append('in %s'),
@@ -260951,11 +260951,27 @@ var hideSensitive = (env) => {
       return false;
     }
 
-    return /token|password|credential|secret|private/i.test(envVar) && size(env[envVar].trim()) >= SECRET_MIN_SIZE;
+    return (
+      /token|password|credential|secret|private|key|auth|webhook/i.test(envVar) &&
+      size(env[envVar].trim()) >= SECRET_MIN_SIZE
+    );
   });
 
   const regexp = new RegExp(
-    toReplace.map((envVar) => `${escapeRegExp$1(env[envVar])}|${escapeRegExp$1(encodeURI(env[envVar]))}`).join("|"),
+    toReplace
+      .flatMap((envVar) => {
+        const value = env[envVar];
+        const forms = new Set([
+          value,
+          encodeURI(value),
+          encodeURIComponent(value),
+          // The form emitted by `url.format()`, which `get-git-auth-url.js` uses to embed credentials
+          // in the repository URL: like `encodeURIComponent()`, but `:` separators are kept as is
+          value.split(":").map(encodeURIComponent).join(":"),
+        ]);
+        return [...forms].map(escapeRegExp$1);
+      })
+      .join("|"),
     "g"
   );
   return (output) =>
@@ -260991,7 +261007,7 @@ async function findUp$1(name, {
 	}
 }
 
-var libExports$2 = requireLib$6();
+var libExports$2 = requireLib$5();
 
 // Performance https://github.com/sindresorhus/index-to-position/pull/9
 function getPosition(text, textIndex) {
@@ -261922,1572 +261938,34 @@ function requireValidateNpmPackageLicense () {
 	return validateNpmPackageLicense;
 }
 
-var commonjs = {};
+var index_min = {};
 
-var hasRequiredCommonjs;
+var hasRequiredIndex_min;
 
-function requireCommonjs () {
-	if (hasRequiredCommonjs) return commonjs;
-	hasRequiredCommonjs = 1;
-	/**
-	 * @module LRUCache
-	 */
-	Object.defineProperty(commonjs, "__esModule", { value: true });
-	commonjs.LRUCache = void 0;
-	const perf = typeof performance === 'object' &&
-	    performance &&
-	    typeof performance.now === 'function'
-	    ? performance
-	    : Date;
-	const warned = new Set();
-	/* c8 ignore start */
-	const PROCESS = (typeof process === 'object' && !!process ? process : {});
-	/* c8 ignore start */
-	const emitWarning = (msg, type, code, fn) => {
-	    typeof PROCESS.emitWarning === 'function'
-	        ? PROCESS.emitWarning(msg, type, code, fn)
-	        : console.error(`[${code}] ${type}: ${msg}`);
-	};
-	let AC = globalThis.AbortController;
-	let AS = globalThis.AbortSignal;
-	/* c8 ignore start */
-	if (typeof AC === 'undefined') {
-	    //@ts-ignore
-	    AS = class AbortSignal {
-	        onabort;
-	        _onabort = [];
-	        reason;
-	        aborted = false;
-	        addEventListener(_, fn) {
-	            this._onabort.push(fn);
-	        }
-	    };
-	    //@ts-ignore
-	    AC = class AbortController {
-	        constructor() {
-	            warnACPolyfill();
-	        }
-	        signal = new AS();
-	        abort(reason) {
-	            if (this.signal.aborted)
-	                return;
-	            //@ts-ignore
-	            this.signal.reason = reason;
-	            //@ts-ignore
-	            this.signal.aborted = true;
-	            //@ts-ignore
-	            for (const fn of this.signal._onabort) {
-	                fn(reason);
-	            }
-	            this.signal.onabort?.(reason);
-	        }
-	    };
-	    let printACPolyfillWarning = PROCESS.env?.LRU_CACHE_IGNORE_AC_WARNING !== '1';
-	    const warnACPolyfill = () => {
-	        if (!printACPolyfillWarning)
-	            return;
-	        printACPolyfillWarning = false;
-	        emitWarning('AbortController is not defined. If using lru-cache in ' +
-	            'node 14, load an AbortController polyfill from the ' +
-	            '`node-abort-controller` package. A minimal polyfill is ' +
-	            'provided for use by LRUCache.fetch(), but it should not be ' +
-	            'relied upon in other contexts (eg, passing it to other APIs that ' +
-	            'use AbortController/AbortSignal might have undesirable effects). ' +
-	            'You may disable this with LRU_CACHE_IGNORE_AC_WARNING=1 in the env.', 'NO_ABORT_CONTROLLER', 'ENOTSUP', warnACPolyfill);
-	    };
-	}
-	/* c8 ignore stop */
-	const shouldWarn = (code) => !warned.has(code);
-	const isPosInt = (n) => n && n === Math.floor(n) && n > 0 && isFinite(n);
-	/* c8 ignore start */
-	// This is a little bit ridiculous, tbh.
-	// The maximum array length is 2^32-1 or thereabouts on most JS impls.
-	// And well before that point, you're caching the entire world, I mean,
-	// that's ~32GB of just integers for the next/prev links, plus whatever
-	// else to hold that many keys and values.  Just filling the memory with
-	// zeroes at init time is brutal when you get that big.
-	// But why not be complete?
-	// Maybe in the future, these limits will have expanded.
-	const getUintArray = (max) => !isPosInt(max)
-	    ? null
-	    : max <= Math.pow(2, 8)
-	        ? Uint8Array
-	        : max <= Math.pow(2, 16)
-	            ? Uint16Array
-	            : max <= Math.pow(2, 32)
-	                ? Uint32Array
-	                : max <= Number.MAX_SAFE_INTEGER
-	                    ? ZeroArray
-	                    : null;
-	/* c8 ignore stop */
-	class ZeroArray extends Array {
-	    constructor(size) {
-	        super(size);
-	        this.fill(0);
-	    }
-	}
-	class Stack {
-	    heap;
-	    length;
-	    // private constructor
-	    static #constructing = false;
-	    static create(max) {
-	        const HeapCls = getUintArray(max);
-	        if (!HeapCls)
-	            return [];
-	        Stack.#constructing = true;
-	        const s = new Stack(max, HeapCls);
-	        Stack.#constructing = false;
-	        return s;
-	    }
-	    constructor(max, HeapCls) {
-	        /* c8 ignore start */
-	        if (!Stack.#constructing) {
-	            throw new TypeError('instantiate Stack using Stack.create(n)');
-	        }
-	        /* c8 ignore stop */
-	        this.heap = new HeapCls(max);
-	        this.length = 0;
-	    }
-	    push(n) {
-	        this.heap[this.length++] = n;
-	    }
-	    pop() {
-	        return this.heap[--this.length];
-	    }
-	}
-	/**
-	 * Default export, the thing you're using this module to get.
-	 *
-	 * The `K` and `V` types define the key and value types, respectively. The
-	 * optional `FC` type defines the type of the `context` object passed to
-	 * `cache.fetch()` and `cache.memo()`.
-	 *
-	 * Keys and values **must not** be `null` or `undefined`.
-	 *
-	 * All properties from the options object (with the exception of `max`,
-	 * `maxSize`, `fetchMethod`, `memoMethod`, `dispose` and `disposeAfter`) are
-	 * added as normal public members. (The listed options are read-only getters.)
-	 *
-	 * Changing any of these will alter the defaults for subsequent method calls.
-	 */
-	class LRUCache {
-	    // options that cannot be changed without disaster
-	    #max;
-	    #maxSize;
-	    #dispose;
-	    #disposeAfter;
-	    #fetchMethod;
-	    #memoMethod;
-	    /**
-	     * {@link LRUCache.OptionsBase.ttl}
-	     */
-	    ttl;
-	    /**
-	     * {@link LRUCache.OptionsBase.ttlResolution}
-	     */
-	    ttlResolution;
-	    /**
-	     * {@link LRUCache.OptionsBase.ttlAutopurge}
-	     */
-	    ttlAutopurge;
-	    /**
-	     * {@link LRUCache.OptionsBase.updateAgeOnGet}
-	     */
-	    updateAgeOnGet;
-	    /**
-	     * {@link LRUCache.OptionsBase.updateAgeOnHas}
-	     */
-	    updateAgeOnHas;
-	    /**
-	     * {@link LRUCache.OptionsBase.allowStale}
-	     */
-	    allowStale;
-	    /**
-	     * {@link LRUCache.OptionsBase.noDisposeOnSet}
-	     */
-	    noDisposeOnSet;
-	    /**
-	     * {@link LRUCache.OptionsBase.noUpdateTTL}
-	     */
-	    noUpdateTTL;
-	    /**
-	     * {@link LRUCache.OptionsBase.maxEntrySize}
-	     */
-	    maxEntrySize;
-	    /**
-	     * {@link LRUCache.OptionsBase.sizeCalculation}
-	     */
-	    sizeCalculation;
-	    /**
-	     * {@link LRUCache.OptionsBase.noDeleteOnFetchRejection}
-	     */
-	    noDeleteOnFetchRejection;
-	    /**
-	     * {@link LRUCache.OptionsBase.noDeleteOnStaleGet}
-	     */
-	    noDeleteOnStaleGet;
-	    /**
-	     * {@link LRUCache.OptionsBase.allowStaleOnFetchAbort}
-	     */
-	    allowStaleOnFetchAbort;
-	    /**
-	     * {@link LRUCache.OptionsBase.allowStaleOnFetchRejection}
-	     */
-	    allowStaleOnFetchRejection;
-	    /**
-	     * {@link LRUCache.OptionsBase.ignoreFetchAbort}
-	     */
-	    ignoreFetchAbort;
-	    // computed properties
-	    #size;
-	    #calculatedSize;
-	    #keyMap;
-	    #keyList;
-	    #valList;
-	    #next;
-	    #prev;
-	    #head;
-	    #tail;
-	    #free;
-	    #disposed;
-	    #sizes;
-	    #starts;
-	    #ttls;
-	    #hasDispose;
-	    #hasFetchMethod;
-	    #hasDisposeAfter;
-	    /**
-	     * Do not call this method unless you need to inspect the
-	     * inner workings of the cache.  If anything returned by this
-	     * object is modified in any way, strange breakage may occur.
-	     *
-	     * These fields are private for a reason!
-	     *
-	     * @internal
-	     */
-	    static unsafeExposeInternals(c) {
-	        return {
-	            // properties
-	            starts: c.#starts,
-	            ttls: c.#ttls,
-	            sizes: c.#sizes,
-	            keyMap: c.#keyMap,
-	            keyList: c.#keyList,
-	            valList: c.#valList,
-	            next: c.#next,
-	            prev: c.#prev,
-	            get head() {
-	                return c.#head;
-	            },
-	            get tail() {
-	                return c.#tail;
-	            },
-	            free: c.#free,
-	            // methods
-	            isBackgroundFetch: (p) => c.#isBackgroundFetch(p),
-	            backgroundFetch: (k, index, options, context) => c.#backgroundFetch(k, index, options, context),
-	            moveToTail: (index) => c.#moveToTail(index),
-	            indexes: (options) => c.#indexes(options),
-	            rindexes: (options) => c.#rindexes(options),
-	            isStale: (index) => c.#isStale(index),
-	        };
-	    }
-	    // Protected read-only members
-	    /**
-	     * {@link LRUCache.OptionsBase.max} (read-only)
-	     */
-	    get max() {
-	        return this.#max;
-	    }
-	    /**
-	     * {@link LRUCache.OptionsBase.maxSize} (read-only)
-	     */
-	    get maxSize() {
-	        return this.#maxSize;
-	    }
-	    /**
-	     * The total computed size of items in the cache (read-only)
-	     */
-	    get calculatedSize() {
-	        return this.#calculatedSize;
-	    }
-	    /**
-	     * The number of items stored in the cache (read-only)
-	     */
-	    get size() {
-	        return this.#size;
-	    }
-	    /**
-	     * {@link LRUCache.OptionsBase.fetchMethod} (read-only)
-	     */
-	    get fetchMethod() {
-	        return this.#fetchMethod;
-	    }
-	    get memoMethod() {
-	        return this.#memoMethod;
-	    }
-	    /**
-	     * {@link LRUCache.OptionsBase.dispose} (read-only)
-	     */
-	    get dispose() {
-	        return this.#dispose;
-	    }
-	    /**
-	     * {@link LRUCache.OptionsBase.disposeAfter} (read-only)
-	     */
-	    get disposeAfter() {
-	        return this.#disposeAfter;
-	    }
-	    constructor(options) {
-	        const { max = 0, ttl, ttlResolution = 1, ttlAutopurge, updateAgeOnGet, updateAgeOnHas, allowStale, dispose, disposeAfter, noDisposeOnSet, noUpdateTTL, maxSize = 0, maxEntrySize = 0, sizeCalculation, fetchMethod, memoMethod, noDeleteOnFetchRejection, noDeleteOnStaleGet, allowStaleOnFetchRejection, allowStaleOnFetchAbort, ignoreFetchAbort, } = options;
-	        if (max !== 0 && !isPosInt(max)) {
-	            throw new TypeError('max option must be a nonnegative integer');
-	        }
-	        const UintArray = max ? getUintArray(max) : Array;
-	        if (!UintArray) {
-	            throw new Error('invalid max value: ' + max);
-	        }
-	        this.#max = max;
-	        this.#maxSize = maxSize;
-	        this.maxEntrySize = maxEntrySize || this.#maxSize;
-	        this.sizeCalculation = sizeCalculation;
-	        if (this.sizeCalculation) {
-	            if (!this.#maxSize && !this.maxEntrySize) {
-	                throw new TypeError('cannot set sizeCalculation without setting maxSize or maxEntrySize');
-	            }
-	            if (typeof this.sizeCalculation !== 'function') {
-	                throw new TypeError('sizeCalculation set to non-function');
-	            }
-	        }
-	        if (memoMethod !== undefined &&
-	            typeof memoMethod !== 'function') {
-	            throw new TypeError('memoMethod must be a function if defined');
-	        }
-	        this.#memoMethod = memoMethod;
-	        if (fetchMethod !== undefined &&
-	            typeof fetchMethod !== 'function') {
-	            throw new TypeError('fetchMethod must be a function if specified');
-	        }
-	        this.#fetchMethod = fetchMethod;
-	        this.#hasFetchMethod = !!fetchMethod;
-	        this.#keyMap = new Map();
-	        this.#keyList = new Array(max).fill(undefined);
-	        this.#valList = new Array(max).fill(undefined);
-	        this.#next = new UintArray(max);
-	        this.#prev = new UintArray(max);
-	        this.#head = 0;
-	        this.#tail = 0;
-	        this.#free = Stack.create(max);
-	        this.#size = 0;
-	        this.#calculatedSize = 0;
-	        if (typeof dispose === 'function') {
-	            this.#dispose = dispose;
-	        }
-	        if (typeof disposeAfter === 'function') {
-	            this.#disposeAfter = disposeAfter;
-	            this.#disposed = [];
-	        }
-	        else {
-	            this.#disposeAfter = undefined;
-	            this.#disposed = undefined;
-	        }
-	        this.#hasDispose = !!this.#dispose;
-	        this.#hasDisposeAfter = !!this.#disposeAfter;
-	        this.noDisposeOnSet = !!noDisposeOnSet;
-	        this.noUpdateTTL = !!noUpdateTTL;
-	        this.noDeleteOnFetchRejection = !!noDeleteOnFetchRejection;
-	        this.allowStaleOnFetchRejection = !!allowStaleOnFetchRejection;
-	        this.allowStaleOnFetchAbort = !!allowStaleOnFetchAbort;
-	        this.ignoreFetchAbort = !!ignoreFetchAbort;
-	        // NB: maxEntrySize is set to maxSize if it's set
-	        if (this.maxEntrySize !== 0) {
-	            if (this.#maxSize !== 0) {
-	                if (!isPosInt(this.#maxSize)) {
-	                    throw new TypeError('maxSize must be a positive integer if specified');
-	                }
-	            }
-	            if (!isPosInt(this.maxEntrySize)) {
-	                throw new TypeError('maxEntrySize must be a positive integer if specified');
-	            }
-	            this.#initializeSizeTracking();
-	        }
-	        this.allowStale = !!allowStale;
-	        this.noDeleteOnStaleGet = !!noDeleteOnStaleGet;
-	        this.updateAgeOnGet = !!updateAgeOnGet;
-	        this.updateAgeOnHas = !!updateAgeOnHas;
-	        this.ttlResolution =
-	            isPosInt(ttlResolution) || ttlResolution === 0
-	                ? ttlResolution
-	                : 1;
-	        this.ttlAutopurge = !!ttlAutopurge;
-	        this.ttl = ttl || 0;
-	        if (this.ttl) {
-	            if (!isPosInt(this.ttl)) {
-	                throw new TypeError('ttl must be a positive integer if specified');
-	            }
-	            this.#initializeTTLTracking();
-	        }
-	        // do not allow completely unbounded caches
-	        if (this.#max === 0 && this.ttl === 0 && this.#maxSize === 0) {
-	            throw new TypeError('At least one of max, maxSize, or ttl is required');
-	        }
-	        if (!this.ttlAutopurge && !this.#max && !this.#maxSize) {
-	            const code = 'LRU_CACHE_UNBOUNDED';
-	            if (shouldWarn(code)) {
-	                warned.add(code);
-	                const msg = 'TTL caching without ttlAutopurge, max, or maxSize can ' +
-	                    'result in unbounded memory consumption.';
-	                emitWarning(msg, 'UnboundedCacheWarning', code, LRUCache);
-	            }
-	        }
-	    }
-	    /**
-	     * Return the number of ms left in the item's TTL. If item is not in cache,
-	     * returns `0`. Returns `Infinity` if item is in cache without a defined TTL.
-	     */
-	    getRemainingTTL(key) {
-	        return this.#keyMap.has(key) ? Infinity : 0;
-	    }
-	    #initializeTTLTracking() {
-	        const ttls = new ZeroArray(this.#max);
-	        const starts = new ZeroArray(this.#max);
-	        this.#ttls = ttls;
-	        this.#starts = starts;
-	        this.#setItemTTL = (index, ttl, start = perf.now()) => {
-	            starts[index] = ttl !== 0 ? start : 0;
-	            ttls[index] = ttl;
-	            if (ttl !== 0 && this.ttlAutopurge) {
-	                const t = setTimeout(() => {
-	                    if (this.#isStale(index)) {
-	                        this.#delete(this.#keyList[index], 'expire');
-	                    }
-	                }, ttl + 1);
-	                // unref() not supported on all platforms
-	                /* c8 ignore start */
-	                if (t.unref) {
-	                    t.unref();
-	                }
-	                /* c8 ignore stop */
-	            }
-	        };
-	        this.#updateItemAge = index => {
-	            starts[index] = ttls[index] !== 0 ? perf.now() : 0;
-	        };
-	        this.#statusTTL = (status, index) => {
-	            if (ttls[index]) {
-	                const ttl = ttls[index];
-	                const start = starts[index];
-	                /* c8 ignore next */
-	                if (!ttl || !start)
-	                    return;
-	                status.ttl = ttl;
-	                status.start = start;
-	                status.now = cachedNow || getNow();
-	                const age = status.now - start;
-	                status.remainingTTL = ttl - age;
-	            }
-	        };
-	        // debounce calls to perf.now() to 1s so we're not hitting
-	        // that costly call repeatedly.
-	        let cachedNow = 0;
-	        const getNow = () => {
-	            const n = perf.now();
-	            if (this.ttlResolution > 0) {
-	                cachedNow = n;
-	                const t = setTimeout(() => (cachedNow = 0), this.ttlResolution);
-	                // not available on all platforms
-	                /* c8 ignore start */
-	                if (t.unref) {
-	                    t.unref();
-	                }
-	                /* c8 ignore stop */
-	            }
-	            return n;
-	        };
-	        this.getRemainingTTL = key => {
-	            const index = this.#keyMap.get(key);
-	            if (index === undefined) {
-	                return 0;
-	            }
-	            const ttl = ttls[index];
-	            const start = starts[index];
-	            if (!ttl || !start) {
-	                return Infinity;
-	            }
-	            const age = (cachedNow || getNow()) - start;
-	            return ttl - age;
-	        };
-	        this.#isStale = index => {
-	            const s = starts[index];
-	            const t = ttls[index];
-	            return !!t && !!s && (cachedNow || getNow()) - s > t;
-	        };
-	    }
-	    // conditionally set private methods related to TTL
-	    #updateItemAge = () => { };
-	    #statusTTL = () => { };
-	    #setItemTTL = () => { };
-	    /* c8 ignore stop */
-	    #isStale = () => false;
-	    #initializeSizeTracking() {
-	        const sizes = new ZeroArray(this.#max);
-	        this.#calculatedSize = 0;
-	        this.#sizes = sizes;
-	        this.#removeItemSize = index => {
-	            this.#calculatedSize -= sizes[index];
-	            sizes[index] = 0;
-	        };
-	        this.#requireSize = (k, v, size, sizeCalculation) => {
-	            // provisionally accept background fetches.
-	            // actual value size will be checked when they return.
-	            if (this.#isBackgroundFetch(v)) {
-	                return 0;
-	            }
-	            if (!isPosInt(size)) {
-	                if (sizeCalculation) {
-	                    if (typeof sizeCalculation !== 'function') {
-	                        throw new TypeError('sizeCalculation must be a function');
-	                    }
-	                    size = sizeCalculation(v, k);
-	                    if (!isPosInt(size)) {
-	                        throw new TypeError('sizeCalculation return invalid (expect positive integer)');
-	                    }
-	                }
-	                else {
-	                    throw new TypeError('invalid size value (must be positive integer). ' +
-	                        'When maxSize or maxEntrySize is used, sizeCalculation ' +
-	                        'or size must be set.');
-	                }
-	            }
-	            return size;
-	        };
-	        this.#addItemSize = (index, size, status) => {
-	            sizes[index] = size;
-	            if (this.#maxSize) {
-	                const maxSize = this.#maxSize - sizes[index];
-	                while (this.#calculatedSize > maxSize) {
-	                    this.#evict(true);
-	                }
-	            }
-	            this.#calculatedSize += sizes[index];
-	            if (status) {
-	                status.entrySize = size;
-	                status.totalCalculatedSize = this.#calculatedSize;
-	            }
-	        };
-	    }
-	    #removeItemSize = _i => { };
-	    #addItemSize = (_i, _s, _st) => { };
-	    #requireSize = (_k, _v, size, sizeCalculation) => {
-	        if (size || sizeCalculation) {
-	            throw new TypeError('cannot set size without setting maxSize or maxEntrySize on cache');
-	        }
-	        return 0;
-	    };
-	    *#indexes({ allowStale = this.allowStale } = {}) {
-	        if (this.#size) {
-	            for (let i = this.#tail; true;) {
-	                if (!this.#isValidIndex(i)) {
-	                    break;
-	                }
-	                if (allowStale || !this.#isStale(i)) {
-	                    yield i;
-	                }
-	                if (i === this.#head) {
-	                    break;
-	                }
-	                else {
-	                    i = this.#prev[i];
-	                }
-	            }
-	        }
-	    }
-	    *#rindexes({ allowStale = this.allowStale } = {}) {
-	        if (this.#size) {
-	            for (let i = this.#head; true;) {
-	                if (!this.#isValidIndex(i)) {
-	                    break;
-	                }
-	                if (allowStale || !this.#isStale(i)) {
-	                    yield i;
-	                }
-	                if (i === this.#tail) {
-	                    break;
-	                }
-	                else {
-	                    i = this.#next[i];
-	                }
-	            }
-	        }
-	    }
-	    #isValidIndex(index) {
-	        return (index !== undefined &&
-	            this.#keyMap.get(this.#keyList[index]) === index);
-	    }
-	    /**
-	     * Return a generator yielding `[key, value]` pairs,
-	     * in order from most recently used to least recently used.
-	     */
-	    *entries() {
-	        for (const i of this.#indexes()) {
-	            if (this.#valList[i] !== undefined &&
-	                this.#keyList[i] !== undefined &&
-	                !this.#isBackgroundFetch(this.#valList[i])) {
-	                yield [this.#keyList[i], this.#valList[i]];
-	            }
-	        }
-	    }
-	    /**
-	     * Inverse order version of {@link LRUCache.entries}
-	     *
-	     * Return a generator yielding `[key, value]` pairs,
-	     * in order from least recently used to most recently used.
-	     */
-	    *rentries() {
-	        for (const i of this.#rindexes()) {
-	            if (this.#valList[i] !== undefined &&
-	                this.#keyList[i] !== undefined &&
-	                !this.#isBackgroundFetch(this.#valList[i])) {
-	                yield [this.#keyList[i], this.#valList[i]];
-	            }
-	        }
-	    }
-	    /**
-	     * Return a generator yielding the keys in the cache,
-	     * in order from most recently used to least recently used.
-	     */
-	    *keys() {
-	        for (const i of this.#indexes()) {
-	            const k = this.#keyList[i];
-	            if (k !== undefined &&
-	                !this.#isBackgroundFetch(this.#valList[i])) {
-	                yield k;
-	            }
-	        }
-	    }
-	    /**
-	     * Inverse order version of {@link LRUCache.keys}
-	     *
-	     * Return a generator yielding the keys in the cache,
-	     * in order from least recently used to most recently used.
-	     */
-	    *rkeys() {
-	        for (const i of this.#rindexes()) {
-	            const k = this.#keyList[i];
-	            if (k !== undefined &&
-	                !this.#isBackgroundFetch(this.#valList[i])) {
-	                yield k;
-	            }
-	        }
-	    }
-	    /**
-	     * Return a generator yielding the values in the cache,
-	     * in order from most recently used to least recently used.
-	     */
-	    *values() {
-	        for (const i of this.#indexes()) {
-	            const v = this.#valList[i];
-	            if (v !== undefined &&
-	                !this.#isBackgroundFetch(this.#valList[i])) {
-	                yield this.#valList[i];
-	            }
-	        }
-	    }
-	    /**
-	     * Inverse order version of {@link LRUCache.values}
-	     *
-	     * Return a generator yielding the values in the cache,
-	     * in order from least recently used to most recently used.
-	     */
-	    *rvalues() {
-	        for (const i of this.#rindexes()) {
-	            const v = this.#valList[i];
-	            if (v !== undefined &&
-	                !this.#isBackgroundFetch(this.#valList[i])) {
-	                yield this.#valList[i];
-	            }
-	        }
-	    }
-	    /**
-	     * Iterating over the cache itself yields the same results as
-	     * {@link LRUCache.entries}
-	     */
-	    [Symbol.iterator]() {
-	        return this.entries();
-	    }
-	    /**
-	     * A String value that is used in the creation of the default string
-	     * description of an object. Called by the built-in method
-	     * `Object.prototype.toString`.
-	     */
-	    [Symbol.toStringTag] = 'LRUCache';
-	    /**
-	     * Find a value for which the supplied fn method returns a truthy value,
-	     * similar to `Array.find()`. fn is called as `fn(value, key, cache)`.
-	     */
-	    find(fn, getOptions = {}) {
-	        for (const i of this.#indexes()) {
-	            const v = this.#valList[i];
-	            const value = this.#isBackgroundFetch(v)
-	                ? v.__staleWhileFetching
-	                : v;
-	            if (value === undefined)
-	                continue;
-	            if (fn(value, this.#keyList[i], this)) {
-	                return this.get(this.#keyList[i], getOptions);
-	            }
-	        }
-	    }
-	    /**
-	     * Call the supplied function on each item in the cache, in order from most
-	     * recently used to least recently used.
-	     *
-	     * `fn` is called as `fn(value, key, cache)`.
-	     *
-	     * If `thisp` is provided, function will be called in the `this`-context of
-	     * the provided object, or the cache if no `thisp` object is provided.
-	     *
-	     * Does not update age or recenty of use, or iterate over stale values.
-	     */
-	    forEach(fn, thisp = this) {
-	        for (const i of this.#indexes()) {
-	            const v = this.#valList[i];
-	            const value = this.#isBackgroundFetch(v)
-	                ? v.__staleWhileFetching
-	                : v;
-	            if (value === undefined)
-	                continue;
-	            fn.call(thisp, value, this.#keyList[i], this);
-	        }
-	    }
-	    /**
-	     * The same as {@link LRUCache.forEach} but items are iterated over in
-	     * reverse order.  (ie, less recently used items are iterated over first.)
-	     */
-	    rforEach(fn, thisp = this) {
-	        for (const i of this.#rindexes()) {
-	            const v = this.#valList[i];
-	            const value = this.#isBackgroundFetch(v)
-	                ? v.__staleWhileFetching
-	                : v;
-	            if (value === undefined)
-	                continue;
-	            fn.call(thisp, value, this.#keyList[i], this);
-	        }
-	    }
-	    /**
-	     * Delete any stale entries. Returns true if anything was removed,
-	     * false otherwise.
-	     */
-	    purgeStale() {
-	        let deleted = false;
-	        for (const i of this.#rindexes({ allowStale: true })) {
-	            if (this.#isStale(i)) {
-	                this.#delete(this.#keyList[i], 'expire');
-	                deleted = true;
-	            }
-	        }
-	        return deleted;
-	    }
-	    /**
-	     * Get the extended info about a given entry, to get its value, size, and
-	     * TTL info simultaneously. Returns `undefined` if the key is not present.
-	     *
-	     * Unlike {@link LRUCache#dump}, which is designed to be portable and survive
-	     * serialization, the `start` value is always the current timestamp, and the
-	     * `ttl` is a calculated remaining time to live (negative if expired).
-	     *
-	     * Always returns stale values, if their info is found in the cache, so be
-	     * sure to check for expirations (ie, a negative {@link LRUCache.Entry#ttl})
-	     * if relevant.
-	     */
-	    info(key) {
-	        const i = this.#keyMap.get(key);
-	        if (i === undefined)
-	            return undefined;
-	        const v = this.#valList[i];
-	        const value = this.#isBackgroundFetch(v)
-	            ? v.__staleWhileFetching
-	            : v;
-	        if (value === undefined)
-	            return undefined;
-	        const entry = { value };
-	        if (this.#ttls && this.#starts) {
-	            const ttl = this.#ttls[i];
-	            const start = this.#starts[i];
-	            if (ttl && start) {
-	                const remain = ttl - (perf.now() - start);
-	                entry.ttl = remain;
-	                entry.start = Date.now();
-	            }
-	        }
-	        if (this.#sizes) {
-	            entry.size = this.#sizes[i];
-	        }
-	        return entry;
-	    }
-	    /**
-	     * Return an array of [key, {@link LRUCache.Entry}] tuples which can be
-	     * passed to {@link LRLUCache#load}.
-	     *
-	     * The `start` fields are calculated relative to a portable `Date.now()`
-	     * timestamp, even if `performance.now()` is available.
-	     *
-	     * Stale entries are always included in the `dump`, even if
-	     * {@link LRUCache.OptionsBase.allowStale} is false.
-	     *
-	     * Note: this returns an actual array, not a generator, so it can be more
-	     * easily passed around.
-	     */
-	    dump() {
-	        const arr = [];
-	        for (const i of this.#indexes({ allowStale: true })) {
-	            const key = this.#keyList[i];
-	            const v = this.#valList[i];
-	            const value = this.#isBackgroundFetch(v)
-	                ? v.__staleWhileFetching
-	                : v;
-	            if (value === undefined || key === undefined)
-	                continue;
-	            const entry = { value };
-	            if (this.#ttls && this.#starts) {
-	                entry.ttl = this.#ttls[i];
-	                // always dump the start relative to a portable timestamp
-	                // it's ok for this to be a bit slow, it's a rare operation.
-	                const age = perf.now() - this.#starts[i];
-	                entry.start = Math.floor(Date.now() - age);
-	            }
-	            if (this.#sizes) {
-	                entry.size = this.#sizes[i];
-	            }
-	            arr.unshift([key, entry]);
-	        }
-	        return arr;
-	    }
-	    /**
-	     * Reset the cache and load in the items in entries in the order listed.
-	     *
-	     * The shape of the resulting cache may be different if the same options are
-	     * not used in both caches.
-	     *
-	     * The `start` fields are assumed to be calculated relative to a portable
-	     * `Date.now()` timestamp, even if `performance.now()` is available.
-	     */
-	    load(arr) {
-	        this.clear();
-	        for (const [key, entry] of arr) {
-	            if (entry.start) {
-	                // entry.start is a portable timestamp, but we may be using
-	                // node's performance.now(), so calculate the offset, so that
-	                // we get the intended remaining TTL, no matter how long it's
-	                // been on ice.
-	                //
-	                // it's ok for this to be a bit slow, it's a rare operation.
-	                const age = Date.now() - entry.start;
-	                entry.start = perf.now() - age;
-	            }
-	            this.set(key, entry.value, entry);
-	        }
-	    }
-	    /**
-	     * Add a value to the cache.
-	     *
-	     * Note: if `undefined` is specified as a value, this is an alias for
-	     * {@link LRUCache#delete}
-	     *
-	     * Fields on the {@link LRUCache.SetOptions} options param will override
-	     * their corresponding values in the constructor options for the scope
-	     * of this single `set()` operation.
-	     *
-	     * If `start` is provided, then that will set the effective start
-	     * time for the TTL calculation. Note that this must be a previous
-	     * value of `performance.now()` if supported, or a previous value of
-	     * `Date.now()` if not.
-	     *
-	     * Options object may also include `size`, which will prevent
-	     * calling the `sizeCalculation` function and just use the specified
-	     * number if it is a positive integer, and `noDisposeOnSet` which
-	     * will prevent calling a `dispose` function in the case of
-	     * overwrites.
-	     *
-	     * If the `size` (or return value of `sizeCalculation`) for a given
-	     * entry is greater than `maxEntrySize`, then the item will not be
-	     * added to the cache.
-	     *
-	     * Will update the recency of the entry.
-	     *
-	     * If the value is `undefined`, then this is an alias for
-	     * `cache.delete(key)`. `undefined` is never stored in the cache.
-	     */
-	    set(k, v, setOptions = {}) {
-	        if (v === undefined) {
-	            this.delete(k);
-	            return this;
-	        }
-	        const { ttl = this.ttl, start, noDisposeOnSet = this.noDisposeOnSet, sizeCalculation = this.sizeCalculation, status, } = setOptions;
-	        let { noUpdateTTL = this.noUpdateTTL } = setOptions;
-	        const size = this.#requireSize(k, v, setOptions.size || 0, sizeCalculation);
-	        // if the item doesn't fit, don't do anything
-	        // NB: maxEntrySize set to maxSize by default
-	        if (this.maxEntrySize && size > this.maxEntrySize) {
-	            if (status) {
-	                status.set = 'miss';
-	                status.maxEntrySizeExceeded = true;
-	            }
-	            // have to delete, in case something is there already.
-	            this.#delete(k, 'set');
-	            return this;
-	        }
-	        let index = this.#size === 0 ? undefined : this.#keyMap.get(k);
-	        if (index === undefined) {
-	            // addition
-	            index = (this.#size === 0
-	                ? this.#tail
-	                : this.#free.length !== 0
-	                    ? this.#free.pop()
-	                    : this.#size === this.#max
-	                        ? this.#evict(false)
-	                        : this.#size);
-	            this.#keyList[index] = k;
-	            this.#valList[index] = v;
-	            this.#keyMap.set(k, index);
-	            this.#next[this.#tail] = index;
-	            this.#prev[index] = this.#tail;
-	            this.#tail = index;
-	            this.#size++;
-	            this.#addItemSize(index, size, status);
-	            if (status)
-	                status.set = 'add';
-	            noUpdateTTL = false;
-	        }
-	        else {
-	            // update
-	            this.#moveToTail(index);
-	            const oldVal = this.#valList[index];
-	            if (v !== oldVal) {
-	                if (this.#hasFetchMethod && this.#isBackgroundFetch(oldVal)) {
-	                    oldVal.__abortController.abort(new Error('replaced'));
-	                    const { __staleWhileFetching: s } = oldVal;
-	                    if (s !== undefined && !noDisposeOnSet) {
-	                        if (this.#hasDispose) {
-	                            this.#dispose?.(s, k, 'set');
-	                        }
-	                        if (this.#hasDisposeAfter) {
-	                            this.#disposed?.push([s, k, 'set']);
-	                        }
-	                    }
-	                }
-	                else if (!noDisposeOnSet) {
-	                    if (this.#hasDispose) {
-	                        this.#dispose?.(oldVal, k, 'set');
-	                    }
-	                    if (this.#hasDisposeAfter) {
-	                        this.#disposed?.push([oldVal, k, 'set']);
-	                    }
-	                }
-	                this.#removeItemSize(index);
-	                this.#addItemSize(index, size, status);
-	                this.#valList[index] = v;
-	                if (status) {
-	                    status.set = 'replace';
-	                    const oldValue = oldVal && this.#isBackgroundFetch(oldVal)
-	                        ? oldVal.__staleWhileFetching
-	                        : oldVal;
-	                    if (oldValue !== undefined)
-	                        status.oldValue = oldValue;
-	                }
-	            }
-	            else if (status) {
-	                status.set = 'update';
-	            }
-	        }
-	        if (ttl !== 0 && !this.#ttls) {
-	            this.#initializeTTLTracking();
-	        }
-	        if (this.#ttls) {
-	            if (!noUpdateTTL) {
-	                this.#setItemTTL(index, ttl, start);
-	            }
-	            if (status)
-	                this.#statusTTL(status, index);
-	        }
-	        if (!noDisposeOnSet && this.#hasDisposeAfter && this.#disposed) {
-	            const dt = this.#disposed;
-	            let task;
-	            while ((task = dt?.shift())) {
-	                this.#disposeAfter?.(...task);
-	            }
-	        }
-	        return this;
-	    }
-	    /**
-	     * Evict the least recently used item, returning its value or
-	     * `undefined` if cache is empty.
-	     */
-	    pop() {
-	        try {
-	            while (this.#size) {
-	                const val = this.#valList[this.#head];
-	                this.#evict(true);
-	                if (this.#isBackgroundFetch(val)) {
-	                    if (val.__staleWhileFetching) {
-	                        return val.__staleWhileFetching;
-	                    }
-	                }
-	                else if (val !== undefined) {
-	                    return val;
-	                }
-	            }
-	        }
-	        finally {
-	            if (this.#hasDisposeAfter && this.#disposed) {
-	                const dt = this.#disposed;
-	                let task;
-	                while ((task = dt?.shift())) {
-	                    this.#disposeAfter?.(...task);
-	                }
-	            }
-	        }
-	    }
-	    #evict(free) {
-	        const head = this.#head;
-	        const k = this.#keyList[head];
-	        const v = this.#valList[head];
-	        if (this.#hasFetchMethod && this.#isBackgroundFetch(v)) {
-	            v.__abortController.abort(new Error('evicted'));
-	        }
-	        else if (this.#hasDispose || this.#hasDisposeAfter) {
-	            if (this.#hasDispose) {
-	                this.#dispose?.(v, k, 'evict');
-	            }
-	            if (this.#hasDisposeAfter) {
-	                this.#disposed?.push([v, k, 'evict']);
-	            }
-	        }
-	        this.#removeItemSize(head);
-	        // if we aren't about to use the index, then null these out
-	        if (free) {
-	            this.#keyList[head] = undefined;
-	            this.#valList[head] = undefined;
-	            this.#free.push(head);
-	        }
-	        if (this.#size === 1) {
-	            this.#head = this.#tail = 0;
-	            this.#free.length = 0;
-	        }
-	        else {
-	            this.#head = this.#next[head];
-	        }
-	        this.#keyMap.delete(k);
-	        this.#size--;
-	        return head;
-	    }
-	    /**
-	     * Check if a key is in the cache, without updating the recency of use.
-	     * Will return false if the item is stale, even though it is technically
-	     * in the cache.
-	     *
-	     * Check if a key is in the cache, without updating the recency of
-	     * use. Age is updated if {@link LRUCache.OptionsBase.updateAgeOnHas} is set
-	     * to `true` in either the options or the constructor.
-	     *
-	     * Will return `false` if the item is stale, even though it is technically in
-	     * the cache. The difference can be determined (if it matters) by using a
-	     * `status` argument, and inspecting the `has` field.
-	     *
-	     * Will not update item age unless
-	     * {@link LRUCache.OptionsBase.updateAgeOnHas} is set.
-	     */
-	    has(k, hasOptions = {}) {
-	        const { updateAgeOnHas = this.updateAgeOnHas, status } = hasOptions;
-	        const index = this.#keyMap.get(k);
-	        if (index !== undefined) {
-	            const v = this.#valList[index];
-	            if (this.#isBackgroundFetch(v) &&
-	                v.__staleWhileFetching === undefined) {
-	                return false;
-	            }
-	            if (!this.#isStale(index)) {
-	                if (updateAgeOnHas) {
-	                    this.#updateItemAge(index);
-	                }
-	                if (status) {
-	                    status.has = 'hit';
-	                    this.#statusTTL(status, index);
-	                }
-	                return true;
-	            }
-	            else if (status) {
-	                status.has = 'stale';
-	                this.#statusTTL(status, index);
-	            }
-	        }
-	        else if (status) {
-	            status.has = 'miss';
-	        }
-	        return false;
-	    }
-	    /**
-	     * Like {@link LRUCache#get} but doesn't update recency or delete stale
-	     * items.
-	     *
-	     * Returns `undefined` if the item is stale, unless
-	     * {@link LRUCache.OptionsBase.allowStale} is set.
-	     */
-	    peek(k, peekOptions = {}) {
-	        const { allowStale = this.allowStale } = peekOptions;
-	        const index = this.#keyMap.get(k);
-	        if (index === undefined ||
-	            (!allowStale && this.#isStale(index))) {
-	            return;
-	        }
-	        const v = this.#valList[index];
-	        // either stale and allowed, or forcing a refresh of non-stale value
-	        return this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
-	    }
-	    #backgroundFetch(k, index, options, context) {
-	        const v = index === undefined ? undefined : this.#valList[index];
-	        if (this.#isBackgroundFetch(v)) {
-	            return v;
-	        }
-	        const ac = new AC();
-	        const { signal } = options;
-	        // when/if our AC signals, then stop listening to theirs.
-	        signal?.addEventListener('abort', () => ac.abort(signal.reason), {
-	            signal: ac.signal,
-	        });
-	        const fetchOpts = {
-	            signal: ac.signal,
-	            options,
-	            context,
-	        };
-	        const cb = (v, updateCache = false) => {
-	            const { aborted } = ac.signal;
-	            const ignoreAbort = options.ignoreFetchAbort && v !== undefined;
-	            if (options.status) {
-	                if (aborted && !updateCache) {
-	                    options.status.fetchAborted = true;
-	                    options.status.fetchError = ac.signal.reason;
-	                    if (ignoreAbort)
-	                        options.status.fetchAbortIgnored = true;
-	                }
-	                else {
-	                    options.status.fetchResolved = true;
-	                }
-	            }
-	            if (aborted && !ignoreAbort && !updateCache) {
-	                return fetchFail(ac.signal.reason);
-	            }
-	            // either we didn't abort, and are still here, or we did, and ignored
-	            const bf = p;
-	            if (this.#valList[index] === p) {
-	                if (v === undefined) {
-	                    if (bf.__staleWhileFetching) {
-	                        this.#valList[index] = bf.__staleWhileFetching;
-	                    }
-	                    else {
-	                        this.#delete(k, 'fetch');
-	                    }
-	                }
-	                else {
-	                    if (options.status)
-	                        options.status.fetchUpdated = true;
-	                    this.set(k, v, fetchOpts.options);
-	                }
-	            }
-	            return v;
-	        };
-	        const eb = (er) => {
-	            if (options.status) {
-	                options.status.fetchRejected = true;
-	                options.status.fetchError = er;
-	            }
-	            return fetchFail(er);
-	        };
-	        const fetchFail = (er) => {
-	            const { aborted } = ac.signal;
-	            const allowStaleAborted = aborted && options.allowStaleOnFetchAbort;
-	            const allowStale = allowStaleAborted || options.allowStaleOnFetchRejection;
-	            const noDelete = allowStale || options.noDeleteOnFetchRejection;
-	            const bf = p;
-	            if (this.#valList[index] === p) {
-	                // if we allow stale on fetch rejections, then we need to ensure that
-	                // the stale value is not removed from the cache when the fetch fails.
-	                const del = !noDelete || bf.__staleWhileFetching === undefined;
-	                if (del) {
-	                    this.#delete(k, 'fetch');
-	                }
-	                else if (!allowStaleAborted) {
-	                    // still replace the *promise* with the stale value,
-	                    // since we are done with the promise at this point.
-	                    // leave it untouched if we're still waiting for an
-	                    // aborted background fetch that hasn't yet returned.
-	                    this.#valList[index] = bf.__staleWhileFetching;
-	                }
-	            }
-	            if (allowStale) {
-	                if (options.status && bf.__staleWhileFetching !== undefined) {
-	                    options.status.returnedStale = true;
-	                }
-	                return bf.__staleWhileFetching;
-	            }
-	            else if (bf.__returned === bf) {
-	                throw er;
-	            }
-	        };
-	        const pcall = (res, rej) => {
-	            const fmp = this.#fetchMethod?.(k, v, fetchOpts);
-	            if (fmp && fmp instanceof Promise) {
-	                fmp.then(v => res(v === undefined ? undefined : v), rej);
-	            }
-	            // ignored, we go until we finish, regardless.
-	            // defer check until we are actually aborting,
-	            // so fetchMethod can override.
-	            ac.signal.addEventListener('abort', () => {
-	                if (!options.ignoreFetchAbort ||
-	                    options.allowStaleOnFetchAbort) {
-	                    res(undefined);
-	                    // when it eventually resolves, update the cache.
-	                    if (options.allowStaleOnFetchAbort) {
-	                        res = v => cb(v, true);
-	                    }
-	                }
-	            });
-	        };
-	        if (options.status)
-	            options.status.fetchDispatched = true;
-	        const p = new Promise(pcall).then(cb, eb);
-	        const bf = Object.assign(p, {
-	            __abortController: ac,
-	            __staleWhileFetching: v,
-	            __returned: undefined,
-	        });
-	        if (index === undefined) {
-	            // internal, don't expose status.
-	            this.set(k, bf, { ...fetchOpts.options, status: undefined });
-	            index = this.#keyMap.get(k);
-	        }
-	        else {
-	            this.#valList[index] = bf;
-	        }
-	        return bf;
-	    }
-	    #isBackgroundFetch(p) {
-	        if (!this.#hasFetchMethod)
-	            return false;
-	        const b = p;
-	        return (!!b &&
-	            b instanceof Promise &&
-	            b.hasOwnProperty('__staleWhileFetching') &&
-	            b.__abortController instanceof AC);
-	    }
-	    async fetch(k, fetchOptions = {}) {
-	        const { 
-	        // get options
-	        allowStale = this.allowStale, updateAgeOnGet = this.updateAgeOnGet, noDeleteOnStaleGet = this.noDeleteOnStaleGet, 
-	        // set options
-	        ttl = this.ttl, noDisposeOnSet = this.noDisposeOnSet, size = 0, sizeCalculation = this.sizeCalculation, noUpdateTTL = this.noUpdateTTL, 
-	        // fetch exclusive options
-	        noDeleteOnFetchRejection = this.noDeleteOnFetchRejection, allowStaleOnFetchRejection = this.allowStaleOnFetchRejection, ignoreFetchAbort = this.ignoreFetchAbort, allowStaleOnFetchAbort = this.allowStaleOnFetchAbort, context, forceRefresh = false, status, signal, } = fetchOptions;
-	        if (!this.#hasFetchMethod) {
-	            if (status)
-	                status.fetch = 'get';
-	            return this.get(k, {
-	                allowStale,
-	                updateAgeOnGet,
-	                noDeleteOnStaleGet,
-	                status,
-	            });
-	        }
-	        const options = {
-	            allowStale,
-	            updateAgeOnGet,
-	            noDeleteOnStaleGet,
-	            ttl,
-	            noDisposeOnSet,
-	            size,
-	            sizeCalculation,
-	            noUpdateTTL,
-	            noDeleteOnFetchRejection,
-	            allowStaleOnFetchRejection,
-	            allowStaleOnFetchAbort,
-	            ignoreFetchAbort,
-	            status,
-	            signal,
-	        };
-	        let index = this.#keyMap.get(k);
-	        if (index === undefined) {
-	            if (status)
-	                status.fetch = 'miss';
-	            const p = this.#backgroundFetch(k, index, options, context);
-	            return (p.__returned = p);
-	        }
-	        else {
-	            // in cache, maybe already fetching
-	            const v = this.#valList[index];
-	            if (this.#isBackgroundFetch(v)) {
-	                const stale = allowStale && v.__staleWhileFetching !== undefined;
-	                if (status) {
-	                    status.fetch = 'inflight';
-	                    if (stale)
-	                        status.returnedStale = true;
-	                }
-	                return stale ? v.__staleWhileFetching : (v.__returned = v);
-	            }
-	            // if we force a refresh, that means do NOT serve the cached value,
-	            // unless we are already in the process of refreshing the cache.
-	            const isStale = this.#isStale(index);
-	            if (!forceRefresh && !isStale) {
-	                if (status)
-	                    status.fetch = 'hit';
-	                this.#moveToTail(index);
-	                if (updateAgeOnGet) {
-	                    this.#updateItemAge(index);
-	                }
-	                if (status)
-	                    this.#statusTTL(status, index);
-	                return v;
-	            }
-	            // ok, it is stale or a forced refresh, and not already fetching.
-	            // refresh the cache.
-	            const p = this.#backgroundFetch(k, index, options, context);
-	            const hasStale = p.__staleWhileFetching !== undefined;
-	            const staleVal = hasStale && allowStale;
-	            if (status) {
-	                status.fetch = isStale ? 'stale' : 'refresh';
-	                if (staleVal && isStale)
-	                    status.returnedStale = true;
-	            }
-	            return staleVal ? p.__staleWhileFetching : (p.__returned = p);
-	        }
-	    }
-	    async forceFetch(k, fetchOptions = {}) {
-	        const v = await this.fetch(k, fetchOptions);
-	        if (v === undefined)
-	            throw new Error('fetch() returned undefined');
-	        return v;
-	    }
-	    memo(k, memoOptions = {}) {
-	        const memoMethod = this.#memoMethod;
-	        if (!memoMethod) {
-	            throw new Error('no memoMethod provided to constructor');
-	        }
-	        const { context, forceRefresh, ...options } = memoOptions;
-	        const v = this.get(k, options);
-	        if (!forceRefresh && v !== undefined)
-	            return v;
-	        const vv = memoMethod(k, v, {
-	            options,
-	            context,
-	        });
-	        this.set(k, vv, options);
-	        return vv;
-	    }
-	    /**
-	     * Return a value from the cache. Will update the recency of the cache
-	     * entry found.
-	     *
-	     * If the key is not found, get() will return `undefined`.
-	     */
-	    get(k, getOptions = {}) {
-	        const { allowStale = this.allowStale, updateAgeOnGet = this.updateAgeOnGet, noDeleteOnStaleGet = this.noDeleteOnStaleGet, status, } = getOptions;
-	        const index = this.#keyMap.get(k);
-	        if (index !== undefined) {
-	            const value = this.#valList[index];
-	            const fetching = this.#isBackgroundFetch(value);
-	            if (status)
-	                this.#statusTTL(status, index);
-	            if (this.#isStale(index)) {
-	                if (status)
-	                    status.get = 'stale';
-	                // delete only if not an in-flight background fetch
-	                if (!fetching) {
-	                    if (!noDeleteOnStaleGet) {
-	                        this.#delete(k, 'expire');
-	                    }
-	                    if (status && allowStale)
-	                        status.returnedStale = true;
-	                    return allowStale ? value : undefined;
-	                }
-	                else {
-	                    if (status &&
-	                        allowStale &&
-	                        value.__staleWhileFetching !== undefined) {
-	                        status.returnedStale = true;
-	                    }
-	                    return allowStale ? value.__staleWhileFetching : undefined;
-	                }
-	            }
-	            else {
-	                if (status)
-	                    status.get = 'hit';
-	                // if we're currently fetching it, we don't actually have it yet
-	                // it's not stale, which means this isn't a staleWhileRefetching.
-	                // If it's not stale, and fetching, AND has a __staleWhileFetching
-	                // value, then that means the user fetched with {forceRefresh:true},
-	                // so it's safe to return that value.
-	                if (fetching) {
-	                    return value.__staleWhileFetching;
-	                }
-	                this.#moveToTail(index);
-	                if (updateAgeOnGet) {
-	                    this.#updateItemAge(index);
-	                }
-	                return value;
-	            }
-	        }
-	        else if (status) {
-	            status.get = 'miss';
-	        }
-	    }
-	    #connect(p, n) {
-	        this.#prev[n] = p;
-	        this.#next[p] = n;
-	    }
-	    #moveToTail(index) {
-	        // if tail already, nothing to do
-	        // if head, move head to next[index]
-	        // else
-	        //   move next[prev[index]] to next[index] (head has no prev)
-	        //   move prev[next[index]] to prev[index]
-	        // prev[index] = tail
-	        // next[tail] = index
-	        // tail = index
-	        if (index !== this.#tail) {
-	            if (index === this.#head) {
-	                this.#head = this.#next[index];
-	            }
-	            else {
-	                this.#connect(this.#prev[index], this.#next[index]);
-	            }
-	            this.#connect(this.#tail, index);
-	            this.#tail = index;
-	        }
-	    }
-	    /**
-	     * Deletes a key out of the cache.
-	     *
-	     * Returns true if the key was deleted, false otherwise.
-	     */
-	    delete(k) {
-	        return this.#delete(k, 'delete');
-	    }
-	    #delete(k, reason) {
-	        let deleted = false;
-	        if (this.#size !== 0) {
-	            const index = this.#keyMap.get(k);
-	            if (index !== undefined) {
-	                deleted = true;
-	                if (this.#size === 1) {
-	                    this.#clear(reason);
-	                }
-	                else {
-	                    this.#removeItemSize(index);
-	                    const v = this.#valList[index];
-	                    if (this.#isBackgroundFetch(v)) {
-	                        v.__abortController.abort(new Error('deleted'));
-	                    }
-	                    else if (this.#hasDispose || this.#hasDisposeAfter) {
-	                        if (this.#hasDispose) {
-	                            this.#dispose?.(v, k, reason);
-	                        }
-	                        if (this.#hasDisposeAfter) {
-	                            this.#disposed?.push([v, k, reason]);
-	                        }
-	                    }
-	                    this.#keyMap.delete(k);
-	                    this.#keyList[index] = undefined;
-	                    this.#valList[index] = undefined;
-	                    if (index === this.#tail) {
-	                        this.#tail = this.#prev[index];
-	                    }
-	                    else if (index === this.#head) {
-	                        this.#head = this.#next[index];
-	                    }
-	                    else {
-	                        const pi = this.#prev[index];
-	                        this.#next[pi] = this.#next[index];
-	                        const ni = this.#next[index];
-	                        this.#prev[ni] = this.#prev[index];
-	                    }
-	                    this.#size--;
-	                    this.#free.push(index);
-	                }
-	            }
-	        }
-	        if (this.#hasDisposeAfter && this.#disposed?.length) {
-	            const dt = this.#disposed;
-	            let task;
-	            while ((task = dt?.shift())) {
-	                this.#disposeAfter?.(...task);
-	            }
-	        }
-	        return deleted;
-	    }
-	    /**
-	     * Clear the cache entirely, throwing away all values.
-	     */
-	    clear() {
-	        return this.#clear('delete');
-	    }
-	    #clear(reason) {
-	        for (const index of this.#rindexes({ allowStale: true })) {
-	            const v = this.#valList[index];
-	            if (this.#isBackgroundFetch(v)) {
-	                v.__abortController.abort(new Error('deleted'));
-	            }
-	            else {
-	                const k = this.#keyList[index];
-	                if (this.#hasDispose) {
-	                    this.#dispose?.(v, k, reason);
-	                }
-	                if (this.#hasDisposeAfter) {
-	                    this.#disposed?.push([v, k, reason]);
-	                }
-	            }
-	        }
-	        this.#keyMap.clear();
-	        this.#valList.fill(undefined);
-	        this.#keyList.fill(undefined);
-	        if (this.#ttls && this.#starts) {
-	            this.#ttls.fill(0);
-	            this.#starts.fill(0);
-	        }
-	        if (this.#sizes) {
-	            this.#sizes.fill(0);
-	        }
-	        this.#head = 0;
-	        this.#tail = 0;
-	        this.#free.length = 0;
-	        this.#calculatedSize = 0;
-	        this.#size = 0;
-	        if (this.#hasDisposeAfter && this.#disposed) {
-	            const dt = this.#disposed;
-	            let task;
-	            while ((task = dt?.shift())) {
-	                this.#disposeAfter?.(...task);
-	            }
-	        }
-	    }
-	}
-	commonjs.LRUCache = LRUCache;
+function requireIndex_min () {
+	if (hasRequiredIndex_min) return index_min;
+	hasRequiredIndex_min = 1;
+var j=(c,t)=>()=>(t||c((t={exports:{}}).exports,t),t.exports);var I=j(O=>{Object.defineProperty(O,"__esModule",{value:true});O.tracing=O.metrics=void 0;var U=require("node:diagnostics_channel");O.metrics=(0, U.channel)("lru-cache:metrics");O.tracing=(0, U.tracingChannel)("lru-cache");});var P=j(D=>{Object.defineProperty(D,"__esModule",{value:true});D.defaultPerf=void 0;D.defaultPerf=typeof performance=="object"&&performance&&typeof performance.now=="function"?performance:Date;});Object.defineProperty(index_min,"__esModule",{value:true});index_min.LRUCache=void 0;var g=I(),N=P(),C=()=>g.metrics.hasSubscribers||g.tracing.hasSubscribers,k=new Set,G=typeof process=="object"&&process?process:{},V=(c,t,e,i)=>{typeof G.emitWarning=="function"?G.emitWarning(c,t,e,i):console.error(`[${e}] ${t}: ${c}`);},q=c=>!k.has(c);var T=c=>!!c&&c===Math.floor(c)&&c>0&&isFinite(c),H=c=>T(c)?c<=Math.pow(2,8)?Uint8Array:c<=Math.pow(2,16)?Uint16Array:c<=Math.pow(2,32)?Uint32Array:c<=Number.MAX_SAFE_INTEGER?W:null:null,W=class extends Array{constructor(t){super(t),this.fill(0);}},x=class c{heap;length;static#o=false;static create(t){let e=H(t);if(!e)return [];c.#o=true;let i=new c(t,e);return c.#o=false,i}constructor(t,e){if(!c.#o)throw new TypeError("instantiate Stack using Stack.create(n)");this.heap=new e(t),this.length=0;}push(t){this.heap[this.length++]=t;}pop(){return this.heap[--this.length]}},L=class c{#o;#c;#m;#W;#S;#M;#j;#w;get perf(){return this.#w}ttl;ttlResolution;ttlAutopurge;updateAgeOnGet;updateAgeOnHas;allowStale;noDisposeOnSet;noUpdateTTL;maxEntrySize;sizeCalculation;noDeleteOnFetchRejection;noDeleteOnStaleGet;allowStaleOnFetchAbort;allowStaleOnFetchRejection;ignoreFetchAbort;backgroundFetchSize;#n;#b;#s;#i;#t;#l;#u;#a;#h;#_;#r;#y;#F;#d;#g;#T;#U;#f;#D;static unsafeExposeInternals(t){return {starts:t.#F,ttls:t.#d,autopurgeTimers:t.#g,sizes:t.#y,keyMap:t.#s,keyList:t.#i,valList:t.#t,next:t.#l,prev:t.#u,get head(){return t.#a},get tail(){return t.#h},free:t.#_,isBackgroundFetch:e=>t.#e(e),backgroundFetch:(e,i,s,n)=>t.#G(e,i,s,n),moveToTail:e=>t.#L(e),indexes:e=>t.#A(e),rindexes:e=>t.#z(e),isStale:e=>t.#p(e)}}get max(){return this.#o}get maxSize(){return this.#c}get calculatedSize(){return this.#b}get size(){return this.#n}get fetchMethod(){return this.#M}get memoMethod(){return this.#j}get dispose(){return this.#m}get onInsert(){return this.#W}get disposeAfter(){return this.#S}constructor(t){let{max:e=0,ttl:i,ttlResolution:s=1,ttlAutopurge:n,updateAgeOnGet:r,updateAgeOnHas:h,allowStale:a,dispose:o,onInsert:d,disposeAfter:_,noDisposeOnSet:y,noUpdateTTL:u,maxSize:p=0,maxEntrySize:f=0,sizeCalculation:b,fetchMethod:l,memoMethod:S,noDeleteOnFetchRejection:F,noDeleteOnStaleGet:w,allowStaleOnFetchRejection:m,allowStaleOnFetchAbort:A,ignoreFetchAbort:z,backgroundFetchSize:M=1,perf:v}=t;if(this.backgroundFetchSize=M,v!==void 0&&typeof v?.now!="function")throw new TypeError("perf option must have a now() method if specified");if(this.#w=v??N.defaultPerf,e!==0&&!T(e))throw new TypeError("max option must be a nonnegative integer");let E=e?H(e):Array;if(!E)throw new Error("invalid max value: "+e);if(this.#o=e,this.#c=p,this.maxEntrySize=f||this.#c,this.sizeCalculation=b,this.sizeCalculation){if(!this.#c&&!this.maxEntrySize)throw new TypeError("cannot set sizeCalculation without setting maxSize or maxEntrySize");if(typeof this.sizeCalculation!="function")throw new TypeError("sizeCalculation set to non-function")}if(S!==void 0&&typeof S!="function")throw new TypeError("memoMethod must be a function if defined");if(this.#j=S,l!==void 0&&typeof l!="function")throw new TypeError("fetchMethod must be a function if specified");if(this.#M=l,this.#U=!!l,this.#s=new Map,this.#i=Array.from({length:e}).fill(void 0),this.#t=Array.from({length:e}).fill(void 0),this.#l=new E(e),this.#u=new E(e),this.#a=0,this.#h=0,this.#_=x.create(e),this.#n=0,this.#b=0,typeof o=="function"&&(this.#m=o),typeof d=="function"&&(this.#W=d),typeof _=="function"?(this.#S=_,this.#r=[]):(this.#S=void 0,this.#r=void 0),this.#T=!!this.#m,this.#D=!!this.#W,this.#f=!!this.#S,this.noDisposeOnSet=!!y,this.noUpdateTTL=!!u,this.noDeleteOnFetchRejection=!!F,this.allowStaleOnFetchRejection=!!m,this.allowStaleOnFetchAbort=!!A,this.ignoreFetchAbort=!!z,this.maxEntrySize!==0){if(this.#c!==0&&!T(this.#c))throw new TypeError("maxSize must be a positive integer if specified");if(!T(this.maxEntrySize))throw new TypeError("maxEntrySize must be a positive integer if specified");this.#X();}if(this.allowStale=!!a,this.noDeleteOnStaleGet=!!w,this.updateAgeOnGet=!!r,this.updateAgeOnHas=!!h,this.ttlResolution=T(s)||s===0?s:1,this.ttlAutopurge=!!n,this.ttl=i||0,this.ttl){if(!T(this.ttl))throw new TypeError("ttl must be a positive integer if specified");this.#k();}if(this.#o===0&&this.ttl===0&&this.#c===0)throw new TypeError("At least one of max, maxSize, or ttl is required");if(!this.ttlAutopurge&&!this.#o&&!this.#c){let R="LRU_CACHE_UNBOUNDED";q(R)&&(k.add(R),V("TTL caching without ttlAutopurge, max, or maxSize can result in unbounded memory consumption.","UnboundedCacheWarning",R,c));}}getRemainingTTL(t){return this.#s.has(t)?1/0:0}#k(){let t=new W(this.#o),e=new W(this.#o);this.#d=t,this.#F=e;let i=this.ttlAutopurge?Array.from({length:this.#o}):void 0;this.#g=i,this.#H=(h,a,o=this.#w.now())=>{e[h]=a!==0?o:0,t[h]=a,s(h,a);},this.#R=h=>{e[h]=t[h]!==0?this.#w.now():0,s(h,t[h]);};let s=this.ttlAutopurge?(h,a)=>{if(i?.[h]&&(clearTimeout(i[h]),i[h]=void 0),a&&a!==0&&i){let o=setTimeout(()=>{this.#p(h)&&this.#v(this.#i[h],"expire");},a+1);o.unref&&o.unref(),i[h]=o;}}:()=>{};this.#E=(h,a)=>{if(t[a]){let o=t[a],d=e[a];if(!o||!d)return;h.ttl=o,h.start=d,h.now=n||r();let _=h.now-d;h.remainingTTL=o-_;}};let n=0,r=()=>{let h=this.#w.now();if(this.ttlResolution>0){n=h;let a=setTimeout(()=>n=0,this.ttlResolution);a.unref&&a.unref();}return h};this.getRemainingTTL=h=>{let a=this.#s.get(h);if(a===void 0)return 0;let o=t[a],d=e[a];if(!o||!d)return 1/0;let _=(n||r())-d;return o-_},this.#p=h=>{let a=e[h],o=t[h];return !!o&&!!a&&(n||r())-a>o};}#R=()=>{};#E=()=>{};#H=()=>{};#p=()=>false;#X(){let t=new W(this.#o);this.#b=0,this.#y=t,this.#C=e=>{this.#b-=t[e],t[e]=0;},this.#N=(e,i,s,n)=>{if(!T(s)){if(this.#e(i))return this.backgroundFetchSize;if(n){if(typeof n!="function")throw new TypeError("sizeCalculation must be a function");if(s=n(i,e),!T(s))throw new TypeError("sizeCalculation return invalid (expect positive integer)")}else throw new TypeError("invalid size value (must be positive integer). When maxSize or maxEntrySize is used, sizeCalculation or size must be set.")}return s},this.#I=(e,i,s)=>{if(t[e]=i,this.#c){let n=this.#c-t[e];for(;this.#b>n;)this.#P(true);}this.#b+=t[e],s&&(s.entrySize=i,s.totalCalculatedSize=this.#b);};}#C=t=>{};#I=(t,e,i)=>{};#N=(t,e,i,s)=>{if(i||s)throw new TypeError("cannot set size without setting maxSize or maxEntrySize on cache");return 0};*#A({allowStale:t=this.allowStale}={}){if(this.#n)for(let e=this.#h;this.#V(e)&&((t||!this.#p(e))&&(yield e),e!==this.#a);)e=this.#u[e];}*#z({allowStale:t=this.allowStale}={}){if(this.#n)for(let e=this.#a;this.#V(e)&&((t||!this.#p(e))&&(yield e),e!==this.#h);)e=this.#l[e];}#V(t){return t!==void 0&&this.#s.get(this.#i[t])===t}*entries(){for(let t of this.#A())this.#t[t]!==void 0&&this.#i[t]!==void 0&&!this.#e(this.#t[t])&&(yield [this.#i[t],this.#t[t]]);}*rentries(){for(let t of this.#z())this.#t[t]!==void 0&&this.#i[t]!==void 0&&!this.#e(this.#t[t])&&(yield [this.#i[t],this.#t[t]]);}*keys(){for(let t of this.#A()){let e=this.#i[t];e!==void 0&&!this.#e(this.#t[t])&&(yield e);}}*rkeys(){for(let t of this.#z()){let e=this.#i[t];e!==void 0&&!this.#e(this.#t[t])&&(yield e);}}*values(){for(let t of this.#A())this.#t[t]!==void 0&&!this.#e(this.#t[t])&&(yield this.#t[t]);}*rvalues(){for(let t of this.#z())this.#t[t]!==void 0&&!this.#e(this.#t[t])&&(yield this.#t[t]);}[Symbol.iterator](){return this.entries()}[Symbol.toStringTag]="LRUCache";find(t,e={}){for(let i of this.#A()){let s=this.#t[i],n=this.#e(s)?s.__staleWhileFetching:s;if(n!==void 0&&t(n,this.#i[i],this))return this.#x(this.#i[i],e)}}forEach(t,e=this){for(let i of this.#A()){let s=this.#t[i],n=this.#e(s)?s.__staleWhileFetching:s;n!==void 0&&t.call(e,n,this.#i[i],this);}}rforEach(t,e=this){for(let i of this.#z()){let s=this.#t[i],n=this.#e(s)?s.__staleWhileFetching:s;n!==void 0&&t.call(e,n,this.#i[i],this);}}purgeStale(){let t=false;for(let e of this.#z({allowStale:true}))this.#p(e)&&(this.#v(this.#i[e],"expire"),t=true);return t}info(t){let e=this.#s.get(t);if(e===void 0)return;let i=this.#t[e],s=this.#e(i)?i.__staleWhileFetching:i;if(s===void 0)return;let n={value:s};if(this.#d&&this.#F){let r=this.#d[e],h=this.#F[e];if(r&&h){let a=r-(this.#w.now()-h);n.ttl=a,n.start=Date.now();}}return this.#y&&(n.size=this.#y[e]),n}dump(){let t=[];for(let e of this.#A({allowStale:true})){let i=this.#i[e],s=this.#t[e],n=this.#e(s)?s.__staleWhileFetching:s;if(n===void 0||i===void 0)continue;let r={value:n};if(this.#d&&this.#F){r.ttl=this.#d[e];let h=this.#w.now()-this.#F[e];r.start=Math.floor(Date.now()-h);}this.#y&&(r.size=this.#y[e]),t.unshift([i,r]);}return t}load(t){this.clear();for(let[e,i]of t){if(i.start){let s=Date.now()-i.start;i.start=this.#w.now()-s;}this.#O(e,i.value,i);}}set(t,e,i={}){let{status:s=g.metrics.hasSubscribers?{}:void 0}=i;i.status=s,s&&(s.op="set",s.key=t,e!==void 0&&(s.value=e),s.cache=this);let n=this.#O(t,e,i);return s&&g.metrics.hasSubscribers&&g.metrics.publish(s),n}#O(t,e,i,s){let{ttl:n=this.ttl,start:r,noDisposeOnSet:h=this.noDisposeOnSet,sizeCalculation:a=this.sizeCalculation,status:o}=i,d=this.#e(e);if(e===void 0)return o&&(o.set="deleted"),this.delete(t),this;let{noUpdateTTL:_=this.noUpdateTTL}=i;o&&!d&&(o.value=e);let y=this.#N(t,e,i.size||0,a,o);if(this.maxEntrySize&&y>this.maxEntrySize)return this.#v(t,"set"),o&&(o.set="miss",o.maxEntrySizeExceeded=true),this;let u=this.#n===0?void 0:this.#s.get(t);if(u===void 0)u=this.#n===0?this.#h:this.#_.length!==0?this.#_.pop():this.#n===this.#o?this.#P(false):this.#n,this.#i[u]=t,this.#t[u]=e,this.#s.set(t,u),this.#l[this.#h]=u,this.#u[u]=this.#h,this.#h=u,this.#n++,this.#I(u,y,o),o&&(o.set="add"),_=false,this.#D&&!d&&this.#W?.(e,t,"add");else {this.#L(u);let p=this.#t[u];if(e!==p){if(!h)if(this.#e(p)){p!==s&&p.__abortController.abort(new Error("replaced"));let{__staleWhileFetching:f}=p;f!==void 0&&f!==e&&(this.#T&&this.#m?.(f,t,"set"),this.#f&&this.#r?.push([f,t,"set"]));}else this.#T&&this.#m?.(p,t,"set"),this.#f&&this.#r?.push([p,t,"set"]);if(this.#C(u),this.#I(u,y,o),this.#t[u]=e,!d){let f=p&&this.#e(p)?p.__staleWhileFetching:p,b=f===void 0?"add":e!==f?"replace":"update";o&&(o.set=b,f!==void 0&&(o.oldValue=f)),this.#D&&this.onInsert?.(e,t,b);}}else d||(o&&(o.set="update"),this.#D&&this.onInsert?.(e,t,"update"));}if(n!==0&&!this.#d&&this.#k(),this.#d&&(_||this.#H(u,n,r),o&&this.#E(o,u)),!h&&this.#f&&this.#r){let p=this.#r,f;for(;f=p?.shift();)this.#S?.(...f);}return this}pop(){try{for(;this.#n;){let t=this.#t[this.#a];if(this.#P(!0),this.#e(t)){if(t.__staleWhileFetching)return t.__staleWhileFetching}else if(t!==void 0)return t}}finally{if(this.#f&&this.#r){let t=this.#r,e;for(;e=t?.shift();)this.#S?.(...e);}}}#P(t){let e=this.#a,i=this.#i[e],s=this.#t[e],n=this.#e(s);n&&s.__abortController.abort(new Error("evicted"));let r=n?s.__staleWhileFetching:s;return (this.#T||this.#f)&&r!==void 0&&(this.#T&&this.#m?.(r,i,"evict"),this.#f&&this.#r?.push([r,i,"evict"])),this.#C(e),this.#g?.[e]&&(clearTimeout(this.#g[e]),this.#g[e]=void 0),t&&(this.#i[e]=void 0,this.#t[e]=void 0,this.#_.push(e)),this.#n===1?(this.#a=this.#h=0,this.#_.length=0):this.#a=this.#l[e],this.#s.delete(i),this.#n--,e}has(t,e={}){let{status:i=g.metrics.hasSubscribers?{}:void 0}=e;e.status=i,i&&(i.op="has",i.key=t,i.cache=this);let s=this.#Y(t,e);return g.metrics.hasSubscribers&&g.metrics.publish(i),s}#Y(t,e={}){let{updateAgeOnHas:i=this.updateAgeOnHas,status:s}=e,n=this.#s.get(t);if(n!==void 0){let r=this.#t[n];if(this.#e(r)&&r.__staleWhileFetching===void 0)return  false;if(this.#p(n))s&&(s.has="stale",this.#E(s,n));else return i&&this.#R(n),s&&(s.has="hit",this.#E(s,n)),true}else s&&(s.has="miss");return  false}peek(t,e={}){let{status:i=C()?{}:void 0}=e;i&&(i.op="peek",i.key=t,i.cache=this),e.status=i;let s=this.#J(t,e);return g.metrics.hasSubscribers&&g.metrics.publish(i),s}#J(t,e){let{status:i,allowStale:s=this.allowStale}=e,n=this.#s.get(t);if(n===void 0||!s&&this.#p(n)){i&&(i.peek=n===void 0?"miss":"stale");return}let r=this.#t[n],h=this.#e(r)?r.__staleWhileFetching:r;return i&&(h!==void 0?(i.peek="hit",i.value=h):i.peek="miss"),h}#G(t,e,i,s){let n=e===void 0?void 0:this.#t[e];if(this.#e(n))return n;let r=new AbortController,{signal:h}=i;h?.addEventListener("abort",()=>r.abort(h.reason),{signal:r.signal});let a={signal:r.signal,options:i,context:s},o=(f,b=false)=>{let{aborted:l}=r.signal,S=i.ignoreFetchAbort&&f!==void 0,F=i.ignoreFetchAbort||!!(i.allowStaleOnFetchAbort&&f!==void 0);if(i.status&&(l&&!b?(i.status.fetchAborted=true,i.status.fetchError=r.signal.reason,S&&(i.status.fetchAbortIgnored=true)):i.status.fetchResolved=true),l&&!S&&!b)return _(r.signal.reason,F);let w=u,m=this.#t[e];return (m===u||m===void 0&&S&&b)&&(f===void 0?w.__staleWhileFetching!==void 0?this.#t[e]=w.__staleWhileFetching:this.#v(t,"fetch"):(i.status&&(i.status.fetchUpdated=true),this.#O(t,f,a.options,w))),f},d=f=>(i.status&&(i.status.fetchRejected=true,i.status.fetchError=f),_(f,false)),_=(f,b)=>{let{aborted:l}=r.signal,S=l&&i.allowStaleOnFetchAbort,F=S||i.allowStaleOnFetchRejection,w=F||i.noDeleteOnFetchRejection,m=u;if(this.#t[e]===u&&(!w||!b&&m.__staleWhileFetching===void 0?this.#v(t,"fetch"):S||(this.#t[e]=m.__staleWhileFetching)),F)return i.status&&m.__staleWhileFetching!==void 0&&(i.status.returnedStale=true),m.__staleWhileFetching;if(m.__returned===m)throw f},y=(f,b)=>{let l=this.#M?.(t,n,a);r.signal.addEventListener("abort",()=>{(!i.ignoreFetchAbort||i.allowStaleOnFetchAbort)&&(f(void 0),i.allowStaleOnFetchAbort&&(f=S=>o(S,true)));}),l&&l instanceof Promise?l.then(S=>f(S===void 0?void 0:S),b):l!==void 0&&f(l);};i.status&&(i.status.fetchDispatched=true);let u=new Promise(y).then(o,d),p=Object.assign(u,{__abortController:r,__staleWhileFetching:n,__returned:void 0});return e===void 0?(this.#O(t,p,{...a.options,status:void 0}),e=this.#s.get(t)):this.#t[e]=p,p}#e(t){if(!this.#U)return  false;let e=t;return !!e&&e instanceof Promise&&e.hasOwnProperty("__staleWhileFetching")&&e.__abortController instanceof AbortController}fetch(t,e={}){let i=g.tracing.hasSubscribers,{status:s=C()?{}:void 0}=e;e.status=s,s&&e.context&&(s.context=e.context);let n=this.#q(t,e);return s&&i&&(s.trace=true,g.tracing.tracePromise(()=>n,s).catch(()=>{})),n}async#q(t,e={}){let{allowStale:i=this.allowStale,updateAgeOnGet:s=this.updateAgeOnGet,noDeleteOnStaleGet:n=this.noDeleteOnStaleGet,ttl:r=this.ttl,noDisposeOnSet:h=this.noDisposeOnSet,size:a=0,sizeCalculation:o=this.sizeCalculation,noUpdateTTL:d=this.noUpdateTTL,noDeleteOnFetchRejection:_=this.noDeleteOnFetchRejection,allowStaleOnFetchRejection:y=this.allowStaleOnFetchRejection,ignoreFetchAbort:u=this.ignoreFetchAbort,allowStaleOnFetchAbort:p=this.allowStaleOnFetchAbort,context:f,forceRefresh:b=false,status:l,signal:S}=e;if(l&&(l.op="fetch",l.key=t,b&&(l.forceRefresh=true),l.cache=this),!this.#U)return l&&(l.fetch="get"),this.#x(t,{allowStale:i,updateAgeOnGet:s,noDeleteOnStaleGet:n,status:l});let F={allowStale:i,updateAgeOnGet:s,noDeleteOnStaleGet:n,ttl:r,noDisposeOnSet:h,size:a,sizeCalculation:o,noUpdateTTL:d,noDeleteOnFetchRejection:_,allowStaleOnFetchRejection:y,allowStaleOnFetchAbort:p,ignoreFetchAbort:u,status:l,signal:S},w=this.#s.get(t);if(w===void 0){l&&(l.fetch="miss");let m=this.#G(t,w,F,f);return m.__returned=m}else {let m=this.#t[w];if(this.#e(m)){let E=i&&m.__staleWhileFetching!==void 0;return l&&(l.fetch="inflight",E&&(l.returnedStale=true)),E?m.__staleWhileFetching:m.__returned=m}let A=this.#p(w);if(!b&&!A)return l&&(l.fetch="hit"),this.#L(w),s&&this.#R(w),l&&this.#E(l,w),m;let z=this.#G(t,w,F,f),v=z.__staleWhileFetching!==void 0&&i;return l&&(l.fetch=A?"stale":"refresh",v&&A&&(l.returnedStale=true)),v?z.__staleWhileFetching:z.__returned=z}}forceFetch(t,e={}){let i=g.tracing.hasSubscribers,{status:s=C()?{}:void 0}=e;e.status=s,s&&e.context&&(s.context=e.context);let n=this.#K(t,e);return s&&i&&(s.trace=true,g.tracing.tracePromise(()=>n,s).catch(()=>{})),n}async#K(t,e={}){let i=await this.#q(t,e);if(i===void 0)throw new Error("fetch() returned undefined");return i}memo(t,e={}){let{status:i=g.metrics.hasSubscribers?{}:void 0}=e;e.status=i,i&&(i.op="memo",i.key=t,e.context&&(i.context=e.context),i.cache=this);let s=this.#Q(t,e);return i&&(i.value=s),g.metrics.hasSubscribers&&g.metrics.publish(i),s}#Q(t,e={}){let i=this.#j;if(!i)throw new Error("no memoMethod provided to constructor");let{context:s,status:n,forceRefresh:r,...h}=e;n&&r&&(n.forceRefresh=true);let a=this.#x(t,h),o=r||a===void 0;if(n&&(n.memo=o?"miss":"hit",o||(n.value=a)),!o)return a;let d=i(t,a,{options:h,context:s});return n&&(n.value=d),this.#O(t,d,h),d}get(t,e={}){let{status:i=g.metrics.hasSubscribers?{}:void 0}=e;e.status=i,i&&(i.op="get",i.key=t,i.cache=this);let s=this.#x(t,e);return i&&(s!==void 0&&(i.value=s),g.metrics.hasSubscribers&&g.metrics.publish(i)),s}#x(t,e={}){let{allowStale:i=this.allowStale,updateAgeOnGet:s=this.updateAgeOnGet,noDeleteOnStaleGet:n=this.noDeleteOnStaleGet,status:r}=e,h=this.#s.get(t);if(h===void 0){r&&(r.get="miss");return}let a=this.#t[h],o=this.#e(a);return r&&this.#E(r,h),this.#p(h)?o?(r&&(r.get="stale-fetching"),i&&a.__staleWhileFetching!==void 0?(r&&(r.returnedStale=true),a.__staleWhileFetching):void 0):(n||this.#v(t,"expire"),r&&(r.get="stale"),i?(r&&(r.returnedStale=true),a):void 0):(r&&(r.get=o?"fetching":"hit"),this.#L(h),s&&this.#R(h),o?a.__staleWhileFetching:a)}#B(t,e){this.#u[e]=t,this.#l[t]=e;}#L(t){t!==this.#h&&(t===this.#a?this.#a=this.#l[t]:this.#B(this.#u[t],this.#l[t]),this.#B(this.#h,t),this.#h=t);}delete(t){return this.#v(t,"delete")}#v(t,e){g.metrics.hasSubscribers&&g.metrics.publish({op:"delete",delete:e,key:t,cache:this});let i=false;if(this.#n!==0){let s=this.#s.get(t);if(s!==void 0)if(this.#g?.[s]&&(clearTimeout(this.#g?.[s]),this.#g[s]=void 0),i=true,this.#n===1)this.#$(e);else {this.#C(s);let n=this.#t[s];if(this.#e(n)?n.__abortController.abort(new Error("deleted")):(this.#T||this.#f)&&(this.#T&&this.#m?.(n,t,e),this.#f&&this.#r?.push([n,t,e])),this.#s.delete(t),this.#i[s]=void 0,this.#t[s]=void 0,s===this.#h)this.#h=this.#u[s];else if(s===this.#a)this.#a=this.#l[s];else {let r=this.#u[s];this.#l[r]=this.#l[s];let h=this.#l[s];this.#u[h]=this.#u[s];}this.#n--,this.#_.push(s);}}if(this.#f&&this.#r?.length){let s=this.#r,n;for(;n=s?.shift();)this.#S?.(...n);}return i}clear(){return this.#$("delete")}#$(t){for(let e of this.#z({allowStale:true})){let i=this.#t[e];if(this.#e(i))i.__abortController.abort(new Error("deleted"));else {let s=this.#i[e];this.#T&&this.#m?.(i,s,t),this.#f&&this.#r?.push([i,s,t]);}}if(this.#s.clear(),this.#t.fill(void 0),this.#i.fill(void 0),this.#d&&this.#F){this.#d.fill(0),this.#F.fill(0);for(let e of this.#g??[])e!==void 0&&clearTimeout(e);this.#g?.fill(void 0);}if(this.#y&&this.#y.fill(0),this.#a=0,this.#h=0,this.#_.length=0,this.#b=0,this.#n=0,this.#f&&this.#r){let e=this.#r,i;for(;i=e?.shift();)this.#S?.(...i);}}};index_min.LRUCache=L;
 	
-	return commonjs;
+	return index_min;
 }
 
 /* eslint-disable max-len */
 
-var hosts_1$1;
-var hasRequiredHosts$1;
+var hosts_1;
+var hasRequiredHosts;
 
-function requireHosts$1 () {
-	if (hasRequiredHosts$1) return hosts_1$1;
-	hasRequiredHosts$1 = 1;
+function requireHosts () {
+	if (hasRequiredHosts) return hosts_1;
+	hasRequiredHosts = 1;
 
 	const maybeJoin = (...args) => args.every(arg => arg) ? args.join('') : '';
 	const maybeEncode = (arg) => arg ? encodeURIComponent(arg) : '';
-	const formatHashFragment = (f) => f.toLowerCase().replace(/^\W+|\/|\W+$/g, '').replace(/\W+/g, '-');
+	const formatHashFragment = (f) => f.toLowerCase()
+	  .replace(/^\W+/g, '') // strip leading non-characters
+	  .replace(/(?<!\W)\W+$/, '') // strip trailing non-characters
+	  .replace(/\//g, '') // strip all slashes
+	  .replace(/\W+/g, '-'); // replace remaining non-characters with '-'
 
 	const defaults = {
 	  sshtemplate: ({ domain, user, project, committish }) =>
@@ -263588,10 +262066,8 @@ function requireHosts$1 () {
 	  treepath: 'tree',
 	  blobpath: 'tree',
 	  editpath: '-/edit',
-	  httpstemplate: ({ auth, domain, user, project, committish }) =>
-	    `git+https://${maybeJoin(auth, '@')}${domain}/${user}/${project}.git${maybeJoin('#', committish)}`,
 	  tarballtemplate: ({ domain, user, project, committish }) =>
-	    `https://${domain}/${user}/${project}/repository/archive.tar.gz?ref=${maybeEncode(committish || 'HEAD')}`,
+	    `https://${domain}/api/v4/projects/${maybeEncode(user + '/' + project)}/repository/archive.tar.gz?sha=${maybeEncode(committish || 'HEAD')}`,
 	  extract: (url) => {
 	    const path = url.pathname.slice(1);
 	    if (path.includes('/-/') || path.includes('/archive.tar.gz')) {
@@ -263679,7 +262155,7 @@ function requireHosts$1 () {
 	  filetemplate: ({ domain, user, project, committish, path }) =>
 	    `https://${domain}/${user}/${project}/blob/${maybeEncode(committish) || 'HEAD'}/${path}`,
 	  httpstemplate: ({ domain, user, project, committish }) =>
-	    `https://${domain}/${user}/${project}.git${maybeJoin('#', committish)}`,
+	    `https://${domain}/${user}/${project}${maybeJoin('#', committish)}`,
 	  tarballtemplate: ({ domain, user, project, committish }) =>
 	    `https://${domain}/${user}/${project}/archive/${maybeEncode(committish) || 'HEAD'}.tar.gz`,
 	  bugstemplate: () => null,
@@ -263707,16 +262183,16 @@ function requireHosts$1 () {
 	  hosts[name] = Object.assign({}, defaults, host);
 	}
 
-	hosts_1$1 = hosts;
-	return hosts_1$1;
+	hosts_1 = hosts;
+	return hosts_1;
 }
 
-var parseUrl$2;
-var hasRequiredParseUrl$1;
+var parseUrl$1;
+var hasRequiredParseUrl;
 
-function requireParseUrl$1 () {
-	if (hasRequiredParseUrl$1) return parseUrl$2;
-	hasRequiredParseUrl$1 = 1;
+function requireParseUrl () {
+	if (hasRequiredParseUrl) return parseUrl$1;
+	hasRequiredParseUrl = 1;
 	const url = require('url');
 
 	const lastIndexOfBefore = (str, char, beforeChar) => {
@@ -263740,20 +262216,23 @@ function requireParseUrl$1 () {
 	    return arg
 	  }
 
+	  if (arg.substr(firstColon, 3) === '://') {
+	    // If arg is given as <foo>://<bar>, then this is already a valid URL.
+	    return arg
+	  }
+
 	  const firstAt = arg.indexOf('@');
 	  if (firstAt > -1) {
 	    if (firstAt > firstColon) {
+	      // URL has the form of <foo>:<bar>@<baz>. Assume this is a git+ssh URL.
 	      return `git+ssh://${arg}`
 	    } else {
+	      // URL has the form 'git@github.com:npm/hosted-git-info.git'.
 	      return arg
 	    }
 	  }
 
-	  const doubleSlash = arg.indexOf('//');
-	  if (doubleSlash === firstColon + 1) {
-	    return arg
-	  }
-
+	  // Correct <foo>:<bar> to <foo>://<bar>
 	  return `${arg.slice(0, firstColon + 1)}//${arg.slice(firstColon + 1)}`
 	};
 
@@ -263791,21 +262270,21 @@ function requireParseUrl$1 () {
 	  return giturl
 	};
 
-	parseUrl$2 = (giturl, protocols) => {
+	parseUrl$1 = (giturl, protocols) => {
 	  const withProtocol = protocols ? correctProtocol(giturl, protocols) : giturl;
 	  return safeUrl(withProtocol) || safeUrl(correctUrl(withProtocol))
 	};
-	return parseUrl$2;
+	return parseUrl$1;
 }
 
-var fromUrl$1;
-var hasRequiredFromUrl$1;
+var fromUrl;
+var hasRequiredFromUrl;
 
-function requireFromUrl$1 () {
-	if (hasRequiredFromUrl$1) return fromUrl$1;
-	hasRequiredFromUrl$1 = 1;
+function requireFromUrl () {
+	if (hasRequiredFromUrl) return fromUrl;
+	hasRequiredFromUrl = 1;
 
-	const parseUrl = requireParseUrl$1();
+	const parseUrl = requireParseUrl();
 
 	// look for github shorthand inputs, such as npm/cli
 	const isGitHubShorthand = (arg) => {
@@ -263838,7 +262317,7 @@ function requireFromUrl$1 () {
 	    secondSlashOnlyAfterHash
 	};
 
-	fromUrl$1 = (giturl, opts, { gitHosts, protocols }) => {
+	fromUrl = (giturl, opts, { gitHosts, protocols }) => {
 	  if (!giturl) {
 	    return
 	  }
@@ -263925,22 +262404,42 @@ function requireFromUrl$1 () {
 
 	  return [gitHostName, user, auth, project, committish, defaultRepresentation, opts]
 	};
-	return fromUrl$1;
+	return fromUrl;
 }
 
-var lib$5;
-var hasRequiredLib$5;
+var lib$4;
+var hasRequiredLib$4;
 
-function requireLib$5 () {
-	if (hasRequiredLib$5) return lib$5;
-	hasRequiredLib$5 = 1;
+function requireLib$4 () {
+	if (hasRequiredLib$4) return lib$4;
+	hasRequiredLib$4 = 1;
 
-	const { LRUCache } = /*@__PURE__*/ requireCommonjs();
-	const hosts = requireHosts$1();
-	const fromUrl = requireFromUrl$1();
-	const parseUrl = requireParseUrl$1();
+	const { LRUCache } = /*@__PURE__*/ requireIndex_min();
+	const hosts = requireHosts();
+	const fromUrl = requireFromUrl();
+	const parseUrl = requireParseUrl();
 
 	const cache = new LRUCache({ max: 1000 });
+
+	function unknownHostedUrl (url) {
+	  try {
+	    const {
+	      protocol,
+	      hostname,
+	      pathname,
+	    } = new URL(url);
+
+	    if (!hostname) {
+	      return null
+	    }
+
+	    const proto = /(?:git\+)http:$/.test(protocol) ? 'http:' : 'https:';
+	    const path = pathname.replace(/\.git$/, '');
+	    return `${proto}//${hostname}${path}`
+	  } catch {
+	    return null
+	  }
+	}
 
 	class GitHost {
 	  constructor (type, user, auth, project, committish, defaultRepresentation, opts = {}) {
@@ -263989,6 +262488,34 @@ function requireLib$5 () {
 	    }
 
 	    return cache.get(key)
+	  }
+
+	  static fromManifest (manifest, opts = {}) {
+	    if (!manifest || typeof manifest !== 'object') {
+	      return
+	    }
+
+	    const r = manifest.repository;
+	    // TODO: look into also checking the `bugs`/`homepage` URLs
+
+	    const rurl = r && (
+	      typeof r === 'string'
+	        ? r
+	        : typeof r === 'object' && typeof r.url === 'string'
+	          ? r.url
+	          : null
+	    );
+
+	    if (!rurl) {
+	      throw new Error('no repository')
+	    }
+
+	    const info = (rurl && GitHost.fromUrl(rurl.replace(/^git\+/, ''), opts)) || null;
+	    if (info) {
+	      return info
+	    }
+	    const unk = unknownHostedUrl(rurl);
+	    return GitHost.fromUrl(unk, opts) || unk
 	  }
 
 	  static parseUrl (url) {
@@ -264111,8 +262638,8 @@ function requireLib$5 () {
 	  GitHost.addHost(name, host);
 	}
 
-	lib$5 = GitHost;
-	return lib$5;
+	lib$4 = GitHost;
+	return lib$4;
 }
 
 var extract_description;
@@ -264156,14 +262683,14 @@ var hasRequiredFixer;
 function requireFixer () {
 	if (hasRequiredFixer) return fixer;
 	hasRequiredFixer = 1;
+	var { URL } = require('node:url');
 	var isValidSemver = requireValid$1();
 	var cleanSemver = requireClean$1();
 	var validateLicense = requireValidateNpmPackageLicense();
-	var hostedGitInfo = requireLib$5();
-	var moduleBuiltin = require('node:module');
+	var hostedGitInfo = requireLib$4();
+	var { isBuiltin } = require('node:module');
 	var depTypes = ['dependencies', 'devDependencies', 'optionalDependencies'];
 	var extractDescription = requireExtract_description();
-	var url = require('url');
 	var typos = require$$5;
 
 	var isEmail = str => str.includes('@') && (str.indexOf('@') < str.lastIndexOf('.'));
@@ -264389,7 +262916,7 @@ function requireFixer () {
 	      data.name = data.name.trim();
 	    }
 	    ensureValidName(data.name, strict, options.allowLegacyCase);
-	    if (moduleBuiltin.builtinModules.includes(data.name)) {
+	    if (isBuiltin(data.name)) {
 	      this.warn('conflictingName', data.name);
 	    }
 	  },
@@ -264427,8 +262954,7 @@ function requireFixer () {
 	      if (typeof data.bugs === 'string') {
 	        if (isEmail(data.bugs)) {
 	          data.bugs = { email: data.bugs };
-	        /* eslint-disable-next-line node/no-deprecated-api */
-	        } else if (url.parse(data.bugs).protocol) {
+	        } else if (URL.canParse(data.bugs)) {
 	          data.bugs = { url: data.bugs };
 	        } else {
 	          this.warn('nonEmailUrlBugsString');
@@ -264438,8 +262964,7 @@ function requireFixer () {
 	        var oldBugs = data.bugs;
 	        data.bugs = {};
 	        if (oldBugs.url) {
-	          /* eslint-disable-next-line node/no-deprecated-api */
-	          if (typeof (oldBugs.url) === 'string' && url.parse(oldBugs.url).protocol) {
+	          if (URL.canParse(oldBugs.url)) {
 	            data.bugs.url = oldBugs.url;
 	          } else {
 	            this.warn('nonUrlBugsUrlField');
@@ -264475,8 +263000,7 @@ function requireFixer () {
 	      this.warn('nonUrlHomepage');
 	      return delete data.homepage
 	    }
-	    /* eslint-disable-next-line node/no-deprecated-api */
-	    if (!url.parse(data.homepage).protocol) {
+	    if (!URL.canParse(data.homepage)) {
 	      data.homepage = 'http://' + data.homepage;
 	    }
 	  },
@@ -264726,6 +263250,8 @@ function requireNormalize () {
 
 var normalizeExports = requireNormalize();
 var normalizePackageData = /*@__PURE__*/getDefaultExportFromCjs(normalizeExports);
+
+node_util.promisify(childProcess.execFile);
 
 function toPath$1(urlOrPath) {
 	return urlOrPath instanceof URL ? node_url.fileURLToPath(urlOrPath) : urlOrPath;
@@ -280330,11 +278856,19 @@ function getRange(min, max) {
 }
 
 function makeTag(tagFormat, version) {
-  return template(tagFormat)({ version });
+  return template(tagFormat, { evaluate: false, escape: false })({ version });
 }
 
 function isSameChannel(channel, otherChannel) {
   return channel === otherChannel || (!channel && !otherChannel);
+}
+
+function getVersionDiff(version1, version2) {
+  if (semver.gte(version1, version2)) {
+    return undefined;
+  }
+
+  return semver.diff(version1, version2);
 }
 
 function extractGitLogTags(tagsString) {
@@ -280395,7 +278929,11 @@ async function getCommits$1(from, to, execaOptions) {
         { cwd: execaOptions.cwd, env: { ...process.env, ...execaOptions.env } }
       )
     )
-  ).map(({ message, gitTags, ...commit }) => ({ ...commit, message: message.trim(), gitTags: gitTags.trim() }));
+  ).map(({ message, gitTags, ...commit }) => ({
+    ...commit,
+    message: (message ?? "").trim(),
+    gitTags: (gitTags ?? "").trim(),
+  }));
 }
 
 /**
@@ -280408,7 +278946,7 @@ async function getCommits$1(from, to, execaOptions) {
  * @throws {Error} If the `git` command fails.
  */
 async function getBranches$1(repositoryUrl, execaOptions) {
-  return (await execa("git", ["ls-remote", "--heads", repositoryUrl], execaOptions)).stdout
+  return (await execa("git", ["ls-remote", "--heads", "--", repositoryUrl], execaOptions)).stdout
     .split("\n")
     .filter(Boolean)
     .map((branch) => branch.match(/^.+refs\/heads\/(?<branch>.+)$/)[1]);
@@ -280440,8 +278978,8 @@ async function fetch(repositoryUrl, branch, ciBranch, execaOptions) {
         "--unshallow",
         "--tags",
         ...(branch === ciBranch && !isDetachedHead
-          ? [repositoryUrl]
-          : ["--update-head-ok", repositoryUrl, `+refs/heads/${branch}:refs/heads/${branch}`]),
+          ? ["--", repositoryUrl]
+          : ["--update-head-ok", "--", repositoryUrl, `+refs/heads/${branch}:refs/heads/${branch}`]),
       ],
       execaOptions
     );
@@ -280452,8 +278990,8 @@ async function fetch(repositoryUrl, branch, ciBranch, execaOptions) {
         "fetch",
         "--tags",
         ...(branch === ciBranch && !isDetachedHead
-          ? [repositoryUrl]
-          : ["--update-head-ok", repositoryUrl, `+refs/heads/${branch}:refs/heads/${branch}`]),
+          ? ["--", repositoryUrl]
+          : ["--update-head-ok", "--", repositoryUrl, `+refs/heads/${branch}:refs/heads/${branch}`]),
       ],
       execaOptions
     );
@@ -280468,9 +279006,9 @@ async function fetch(repositoryUrl, branch, ciBranch, execaOptions) {
  */
 async function fetchNotes(repositoryUrl, execaOptions) {
   try {
-    await execa("git", ["fetch", "--unshallow", repositoryUrl, `+refs/notes/*:refs/notes/*`], execaOptions);
+    await execa("git", ["fetch", "--unshallow", "--", repositoryUrl, `+refs/notes/*:refs/notes/*`], execaOptions);
   } catch {
-    await execa("git", ["fetch", repositoryUrl, `+refs/notes/*:refs/notes/*`], {
+    await execa("git", ["fetch", "--", repositoryUrl, `+refs/notes/*:refs/notes/*`], {
       ...execaOptions,
       reject: false,
     });
@@ -280529,7 +279067,7 @@ async function isGitRepo(execaOptions) {
  */
 async function verifyAuth(repositoryUrl, branch, execaOptions) {
   try {
-    await execa("git", ["push", "--dry-run", "--no-verify", repositoryUrl, `HEAD:${branch}`], execaOptions);
+    await execa("git", ["push", "--dry-run", "--no-verify", "--", repositoryUrl, `HEAD:${branch}`], execaOptions);
   } catch (error) {
     debug$5(error);
     throw error;
@@ -280558,7 +279096,7 @@ async function tag(tagName, ref, execaOptions) {
  * @throws {Error} if the push failed.
  */
 async function push(repositoryUrl, execaOptions) {
-  await execa("git", ["push", "--tags", repositoryUrl], execaOptions);
+  await execa("git", ["push", "--tags", "--", repositoryUrl], execaOptions);
 }
 
 /**
@@ -280570,7 +279108,7 @@ async function push(repositoryUrl, execaOptions) {
  * @throws {Error} if the push failed.
  */
 async function pushNotes(repositoryUrl, ref, execaOptions) {
-  await execa("git", ["push", repositoryUrl, `refs/notes/${GIT_NOTE_REF}-${ref}`], execaOptions);
+  await execa("git", ["push", "--", repositoryUrl, `refs/notes/${GIT_NOTE_REF}-${ref}`], execaOptions);
 }
 
 /**
@@ -280617,7 +279155,9 @@ async function verifyBranchName(branch, execaOptions) {
 async function isBranchUpToDate(repositoryUrl, branch, execaOptions) {
   return (
     (await getGitHead(execaOptions)) ===
-    (await execa("git", ["ls-remote", "--heads", repositoryUrl, branch], execaOptions)).stdout.match(/^(?<ref>\w+)?/)[1]
+    (await execa("git", ["ls-remote", "--heads", "--", repositoryUrl, branch], execaOptions)).stdout.match(
+      /^(?<ref>\w+)?/
+    )[1]
   );
 }
 
@@ -280810,16 +279350,19 @@ class SemanticReleaseError extends Error {
   }
 }
 
-node_module.createRequire((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('main.cjs', document.baseURI).href)));
-const pkg$1 = {
-  "version": "25.0.1",
-  "homepage": "https://github.com/semantic-release/semantic-release#readme"}
-;
+const version="25.0.9";var pkg$1 = {version:version};
 
-const [homepage] = pkg$1.homepage.split("#");
+const DOCS_URL = "https://semantic-release.org";
+
 const stringify$1 = (object) =>
   isString(object) ? object : node_util.inspect(object, { breakLength: Infinity, depth: 2, maxArrayLength: 5 });
-const linkify = (file) => `${homepage}/blob/master/${file}`;
+
+const linkify = (file) => {
+  const [path, hash] = file.split("#");
+
+  return `${DOCS_URL}/${path.replace(/\.md$/u, "")}${hash ? `#${hash}` : ""}`;
+};
+
 const wordsList = (words) =>
   `${words.slice(0, -1).join(", ")}${words.length > 1 ? ` or ${words[words.length - 1]}` : trim(words[0])}`;
 
@@ -280838,25 +279381,42 @@ function ENOREPOURL() {
   return {
     message: "The `repositoryUrl` option is required.",
     details: `The [repositoryUrl option](${linkify(
-      "docs/usage/configuration.md#repositoryurl"
+      "usage/configuration#repositoryurl"
     )}) cannot be determined from the semantic-release configuration, the \`package.json\` nor the [git origin url](https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes).
 
-Please make sure to add the \`repositoryUrl\` to the [semantic-release configuration] (${linkify(
-      "docs/usage/configuration.md"
+Please make sure to add the \`repositoryUrl\` to the [semantic-release configuration](${linkify(
+      "usage/configuration#repositoryurl"
     )}).`,
   };
 }
 
-function EGITNOPERMISSION({ options: { repositoryUrl }, branch: { name } }) {
+function EINVALIDREPOURL({ repositoryUrl }) {
+  return {
+    message: "The `repositoryUrl` option is not a valid git URL.",
+    details: `The [repositoryUrl option](${linkify(
+      "usage/configuration#repositoryurl"
+    )}) must be a valid git URL and cannot begin with \`-\`, as \`git\` would otherwise interpret it as a command-line option rather than a URL.
+
+The invalid \`repositoryUrl\` is \`${repositoryUrl}\`.
+
+Please verify the \`repository\` property in your \`package.json\` and the [repositoryUrl option](${linkify(
+      "usage/configuration#repositoryurl"
+    )}) in your [semantic-release configuration](${linkify("usage/configuration#configuration")}).`,
+  };
+}
+
+function EGITNOPERMISSION({ options: { originalRepositoryURL, repositoryUrl }, branch: { name } }) {
   return {
     message: "Cannot push to the Git repository.",
-    details: `**semantic-release** cannot push the version tag to the branch \`${name}\` on the remote Git repository with URL \`${repositoryUrl}\`.
+    // Use `originalRepositoryURL` as `repositoryUrl` may contain credentials resolved by `getGitAuthUrl`,
+    // and this error is rethrown to API consumers without masking
+    details: `**semantic-release** cannot push the version tag to the branch \`${name}\` on the remote Git repository with URL \`${originalRepositoryURL || repositoryUrl}\`.
 
 This can be caused by:
- - a misconfiguration of the [repositoryUrl](${linkify("docs/usage/configuration.md#repositoryurl")}) option
+ - a misconfiguration of the [repositoryUrl](${linkify("usage/configuration#repositoryurl")}) option
  - the repository being unavailable
  - or missing push permission for the user configured via the [Git credentials on your CI environment](${linkify(
-   "docs/usage/ci-configuration.md#authentication"
+   "usage/ci-configuration#authentication"
  )})`,
   };
 }
@@ -280865,7 +279425,7 @@ function EINVALIDTAGFORMAT({ options: { tagFormat } }) {
   return {
     message: "Invalid `tagFormat` option.",
     details: `The [tagFormat](${linkify(
-      "docs/usage/configuration.md#tagformat"
+      "usage/configuration#tagformat"
     )}) must compile to a [valid Git reference](https://git-scm.com/docs/git-check-ref-format#_description).
 
 Your configuration for the \`tagFormat\` option is \`${stringify$1(tagFormat)}\`.`,
@@ -280876,7 +279436,7 @@ function ETAGNOVERSION({ options: { tagFormat } }) {
   return {
     message: "Invalid `tagFormat` option.",
     details: `The [tagFormat](${linkify(
-      "docs/usage/configuration.md#tagformat"
+      "usage/configuration#tagformat"
     )}) option must contain the variable \`version\` exactly once.
 
 Your configuration for the \`tagFormat\` option is \`${stringify$1(tagFormat)}\`.`,
@@ -280886,7 +279446,7 @@ Your configuration for the \`tagFormat\` option is \`${stringify$1(tagFormat)}\`
 function EPLUGINCONF({ type, required, pluginConf }) {
   return {
     message: `The \`${type}\` plugin configuration is invalid.`,
-    details: `The [${type} plugin configuration](${linkify(`docs/usage/plugins.md#${toLower(type)}-plugin`)}) ${
+    details: `The [${type} plugin configuration](${linkify(`foundation/plugins#${toLower(type)}-plugin`)}) ${
       required ? "is required and " : ""
     } must be a single or an array of plugins definition. A plugin definition is an npm module name, optionally wrapped in an array with an object.
 
@@ -280898,7 +279458,7 @@ function EPLUGINSCONF({ plugin }) {
   return {
     message: "The `plugins` configuration is invalid.",
     details: `The [plugins](${linkify(
-      "docs/usage/configuration.md#plugins"
+      "usage/configuration#plugins"
     )}) option must be an array of plugin definitions. A plugin definition is an npm module name, optionally wrapped in an array with an object.
 
 The invalid configuration is \`${stringify$1(plugin)}\`.`,
@@ -280913,7 +279473,7 @@ function EPLUGIN({ pluginName, type }) {
 The plugin \`${pluginName}\` doesn't have the property \`${type}\` and cannot be used for the \`${type}\` step.
 
 Please refer to the \`${pluginName}\` and [semantic-release plugins configuration](${linkify(
-      "docs/usage/plugins.md"
+      "foundation/plugins/#plugin-options-configuration"
     )}) documentation for more details.`,
   };
 }
@@ -280931,8 +279491,8 @@ We recommend to report the issue to the \`${pluginName}\` authors, providing the
 - The **semantic-release** version: \`${pkg$1.version}\`
 - The **semantic-release** logs from your CI job
 - The value returned by the plugin: \`${stringify$1(result)}\`
-- A link to the **semantic-release** plugin developer guide: [${linkify("docs/developer-guide/plugin.md")}](${linkify(
-      "docs/developer-guide/plugin.md"
+- A link to the **semantic-release** plugin developer guide: [${linkify("developer-guide/plugin")}](${linkify(
+      "developer-guide/plugin"
     )})`,
   };
 }
@@ -280948,8 +279508,8 @@ We recommend to report the issue to the \`${pluginName}\` authors, providing the
 - The **semantic-release** version: \`${pkg$1.version}\`
 - The **semantic-release** logs from your CI job
 - The value returned by the plugin: \`${stringify$1(result)}\`
-- A link to the **semantic-release** plugin developer guide: [${linkify("docs/developer-guide/plugin.md")}](${linkify(
-      "docs/developer-guide/plugin.md"
+- A link to the **semantic-release** plugin developer guide: [${linkify("developer-guide/plugin")}](${linkify(
+      "developer-guide/plugin"
     )})`,
   };
 }
@@ -280965,8 +279525,8 @@ We recommend to report the issue to the \`${pluginName}\` authors, providing the
 - The **semantic-release** version: \`${pkg$1.version}\`
 - The **semantic-release** logs from your CI job
 - The value returned by the plugin: \`${stringify$1(result)}\`
-- A link to the **semantic-release** plugin developer guide: [${linkify("docs/developer-guide/plugin.md")}](${linkify(
-      "docs/developer-guide/plugin.md"
+- A link to the **semantic-release** plugin developer guide: [${linkify("developer-guide/plugin")}](${linkify(
+      "developer-guide/plugin"
     )})`,
   };
 }
@@ -280982,8 +279542,8 @@ We recommend to report the issue to the \`${pluginName}\` authors, providing the
 - The **semantic-release** version: \`${pkg$1.version}\`
 - The **semantic-release** logs from your CI job
 - The value returned by the plugin: \`${stringify$1(result)}\`
-- A link to the **semantic-release** plugin developer guide: [${linkify("docs/developer-guide/plugin.md")}](${linkify(
-      "docs/developer-guide/plugin.md"
+- A link to the **semantic-release** plugin developer guide: [${linkify("developer-guide/plugin")}](${linkify(
+      "developer-guide/plugin"
     )})`,
   };
 }
@@ -280992,7 +279552,7 @@ function EINVALIDBRANCH({ branch }) {
   return {
     message: "A branch is invalid in the `branches` configuration.",
     details: `Each branch in the [branches configuration](${linkify(
-      "docs/usage/configuration.md#branches"
+      "usage/configuration#branches"
     )}) must be either a string, a regexp or an object with a \`name\` property.
 
 Your configuration for the problematic branch is \`${stringify$1(branch)}\`.`,
@@ -281003,7 +279563,7 @@ function EINVALIDBRANCHNAME({ branch }) {
   return {
     message: "A branch name is invalid in the `branches` configuration.",
     details: `Each branch in the [branches configuration](${linkify(
-      "docs/usage/configuration.md#branches"
+      "usage/configuration#branches"
     )}) must be a [valid Git reference](https://git-scm.com/docs/git-check-ref-format#_description).
 
 Your configuration for the problematic branch is \`${stringify$1(branch)}\`.`,
@@ -281014,7 +279574,7 @@ function EDUPLICATEBRANCHES({ duplicates }) {
   return {
     message: "The `branches` configuration has duplicate branches.",
     details: `Each branch in the [branches configuration](${linkify(
-      "docs/usage/configuration.md#branches"
+      "usage/configuration#branches"
     )}) must havea unique name.
 
 Your configuration contains duplicates for the following branch names: \`${stringify$1(duplicates)}\`.`,
@@ -281025,7 +279585,7 @@ function EMAINTENANCEBRANCH({ branch }) {
   return {
     message: "A maintenance branch is invalid in the `branches` configuration.",
     details: `Each maintenance branch in the [branches configuration](${linkify(
-      "docs/usage/configuration.md#branches"
+      "usage/configuration#branches"
     )}) must have a \`range\` property formatted like \`N.x\`, \`N.x.x\` or \`N.N.x\` (\`N\` is a number).
 
 Your configuration for the problematic branch is \`${stringify$1(branch)}\`.`,
@@ -281036,7 +279596,7 @@ function EMAINTENANCEBRANCHES({ branches }) {
   return {
     message: "The maintenance branches are invalid in the `branches` configuration.",
     details: `Each maintenance branch in the [branches configuration](${linkify(
-      "docs/usage/configuration.md#branches"
+      "usage/configuration#branches"
     )}) must have a unique \`range\` property and must exist on the remote repository.
 
 Your configuration for the problematic branches is \`${stringify$1(branches)}\`.`,
@@ -281047,7 +279607,7 @@ function ERELEASEBRANCHES({ branches }) {
   return {
     message: "The release branches are invalid in the `branches` configuration.",
     details: `A minimum of 1 and a maximum of 3 release branches are required in the [branches configuration](${linkify(
-      "docs/usage/configuration.md#branches"
+      "usage/configuration#branches"
     )}). These branches must exist on the remote repository.
 
 This may occur if your repository does not have a release branch, such as \`master\` or \`main\`.
@@ -281060,7 +279620,7 @@ function EPRERELEASEBRANCH({ branch }) {
   return {
     message: "A pre-release branch configuration is invalid in the `branches` configuration.",
     details: `Each pre-release branch in the [branches configuration](${linkify(
-      "docs/usage/configuration.md#branches"
+      "usage/configuration#branches"
     )}) must have a \`prerelease\` property valid per the [Semantic Versioning Specification](https://semver.org/#spec-item-9). If the \`prerelease\` property is set to \`true\`, then the \`name\` property is used instead. Additionally, each pre-release branch must exist on the remote repository.
 
 Your configuration for the problematic branch is \`${stringify$1(branch)}\`.`,
@@ -281071,7 +279631,7 @@ function EPRERELEASEBRANCHES({ branches }) {
   return {
     message: "The pre-release branches are invalid in the `branches` configuration.",
     details: `Each pre-release branch in the [branches configuration](${linkify(
-      "docs/usage/configuration.md#branches"
+      "usage/configuration#branches"
     )}) must have a unique \`prerelease\` property. If the \`prerelease\` property is set to \`true\`, then the \`name\` property is used instead.
 
 Your configuration for the problematic branches is \`${stringify$1(branches)}\`.`,
@@ -281092,7 +279652,7 @@ ${
 
 A valid branch could be ${wordsList(validBranches.map(({ name }) => `\`${name}\``))}.
 
-See the [workflow configuration documentation](${linkify("docs/usage/workflow-configuration.md")}) for more details.`,
+See the [workflow configuration documentation](${linkify("foundation/workflow-configuration")}) for more details.`,
   };
 }
 
@@ -281103,7 +279663,7 @@ function EINVALIDMAINTENANCEMERGE({ nextRelease: { channel, gitTag, version }, b
 
 The branch \`${name}\` head should be [reset](https://git-scm.com/docs/git-reset) to a previous commit so the commit with tag \`${gitTag}\` is removed from the branch history.
 
-See the [workflow configuration documentation](${linkify("docs/usage/workflow-configuration.md")}) for more details.`,
+See the [workflow configuration documentation](${linkify("foundation/workflow-configuration")}) for more details.`,
   };
 }
 
@@ -281118,6 +279678,7 @@ var ERROR_DEFINITIONS = /*#__PURE__*/Object.freeze({
     EINVALIDBRANCHNAME: EINVALIDBRANCHNAME,
     EINVALIDMAINTENANCEMERGE: EINVALIDMAINTENANCEMERGE,
     EINVALIDNEXTVERSION: EINVALIDNEXTVERSION,
+    EINVALIDREPOURL: EINVALIDREPOURL,
     EINVALIDTAGFORMAT: EINVALIDTAGFORMAT,
     EMAINTENANCEBRANCH: EMAINTENANCEBRANCH,
     EMAINTENANCEBRANCHES: EMAINTENANCEBRANCHES,
@@ -281611,17 +280172,21 @@ var verify = async (context) => {
     errors.push(getError("ENOGITREPO", { cwd }));
   } else if (!repositoryUrl) {
     errors.push(getError("ENOREPOURL"));
+  } else if (repositoryUrl.startsWith("-")) {
+    // A `repositoryUrl` beginning with `-` would be interpreted by `git` as a
+    // command-line option rather than a URL, enabling argument injection.
+    errors.push(getError("EINVALIDREPOURL", { repositoryUrl }));
   }
 
   // Verify that compiling the `tagFormat` produce a valid Git tag
-  if (!(await verifyTagName(template(tagFormat)({ version: "0.0.0" })))) {
+  if (!(await verifyTagName(template(tagFormat, { evaluate: false, escape: false })({ version: "0.0.0" })))) {
     errors.push(getError("EINVALIDTAGFORMAT", context));
   }
 
   // Verify the `tagFormat` contains the variable `version` by compiling the `tagFormat` template
   // with a space as the `version` value and verify the result contains the space.
   // The space is used as it's an invalid tag character, so it's guaranteed to no be present in the `tagFormat`.
-  if ((template(tagFormat)({ version: " " }).match(/ /g) || []).length !== 1) {
+  if ((template(tagFormat, { evaluate: false, escape: false })({ version: " " }).match(/ /g) || []).length !== 1) {
     errors.push(getError("ETAGNOVERSION", context));
   }
 
@@ -281744,17 +280309,6 @@ var getLastRelease = ({ branch, options: { tagFormat } }, { before } = {}) => {
   return {};
 };
 
-function semverDiff(versionA, versionB) {
-	versionA = semver.parse(versionA);
-	versionB = semver.parse(versionB);
-
-	if (semver.compareBuild(versionA, versionB) >= 0) {
-		return;
-	}
-
-	return semver.diff(versionA, versionB) || 'build';
-}
-
 /**
  * Find releases that have been merged from a higher branch but not added on the channel of the current branch.
  *
@@ -281793,7 +280347,7 @@ var getReleaseToAdd = (context) => {
       return;
     }
 
-    const type = lastRelease.version ? semverDiff(lastRelease.version, version) : "major";
+    const type = lastRelease.version ? getVersionDiff(lastRelease.version, version) : "major";
     const name = makeTag(tagFormat, version);
     return {
       lastRelease,
@@ -281809,710 +280363,6 @@ var getReleaseToAdd = (context) => {
     };
   }
 };
-
-var index_min = {};
-
-var hasRequiredIndex_min;
-
-function requireIndex_min () {
-	if (hasRequiredIndex_min) return index_min;
-	hasRequiredIndex_min = 1;
-var j=(c,t)=>()=>(t||c((t={exports:{}}).exports,t),t.exports);var I=j(O=>{Object.defineProperty(O,"__esModule",{value:true});O.tracing=O.metrics=void 0;var U=require("node:diagnostics_channel");O.metrics=(0, U.channel)("lru-cache:metrics");O.tracing=(0, U.tracingChannel)("lru-cache");});var P=j(D=>{Object.defineProperty(D,"__esModule",{value:true});D.defaultPerf=void 0;D.defaultPerf=typeof performance=="object"&&performance&&typeof performance.now=="function"?performance:Date;});Object.defineProperty(index_min,"__esModule",{value:true});index_min.LRUCache=void 0;var g=I(),N=P(),C=()=>g.metrics.hasSubscribers||g.tracing.hasSubscribers,k=new Set,G=typeof process=="object"&&process?process:{},V=(c,t,e,i)=>{typeof G.emitWarning=="function"?G.emitWarning(c,t,e,i):console.error(`[${e}] ${t}: ${c}`);},q=c=>!k.has(c);var T=c=>!!c&&c===Math.floor(c)&&c>0&&isFinite(c),H=c=>T(c)?c<=Math.pow(2,8)?Uint8Array:c<=Math.pow(2,16)?Uint16Array:c<=Math.pow(2,32)?Uint32Array:c<=Number.MAX_SAFE_INTEGER?W:null:null,W=class extends Array{constructor(t){super(t),this.fill(0);}},x=class c{heap;length;static#o=false;static create(t){let e=H(t);if(!e)return [];c.#o=true;let i=new c(t,e);return c.#o=false,i}constructor(t,e){if(!c.#o)throw new TypeError("instantiate Stack using Stack.create(n)");this.heap=new e(t),this.length=0;}push(t){this.heap[this.length++]=t;}pop(){return this.heap[--this.length]}},L=class c{#o;#c;#m;#W;#S;#M;#j;#w;get perf(){return this.#w}ttl;ttlResolution;ttlAutopurge;updateAgeOnGet;updateAgeOnHas;allowStale;noDisposeOnSet;noUpdateTTL;maxEntrySize;sizeCalculation;noDeleteOnFetchRejection;noDeleteOnStaleGet;allowStaleOnFetchAbort;allowStaleOnFetchRejection;ignoreFetchAbort;backgroundFetchSize;#n;#b;#s;#i;#t;#l;#u;#a;#h;#_;#r;#y;#F;#d;#g;#T;#U;#f;#D;static unsafeExposeInternals(t){return {starts:t.#F,ttls:t.#d,autopurgeTimers:t.#g,sizes:t.#y,keyMap:t.#s,keyList:t.#i,valList:t.#t,next:t.#l,prev:t.#u,get head(){return t.#a},get tail(){return t.#h},free:t.#_,isBackgroundFetch:e=>t.#e(e),backgroundFetch:(e,i,s,n)=>t.#G(e,i,s,n),moveToTail:e=>t.#L(e),indexes:e=>t.#A(e),rindexes:e=>t.#z(e),isStale:e=>t.#p(e)}}get max(){return this.#o}get maxSize(){return this.#c}get calculatedSize(){return this.#b}get size(){return this.#n}get fetchMethod(){return this.#M}get memoMethod(){return this.#j}get dispose(){return this.#m}get onInsert(){return this.#W}get disposeAfter(){return this.#S}constructor(t){let{max:e=0,ttl:i,ttlResolution:s=1,ttlAutopurge:n,updateAgeOnGet:r,updateAgeOnHas:h,allowStale:a,dispose:o,onInsert:d,disposeAfter:_,noDisposeOnSet:y,noUpdateTTL:u,maxSize:p=0,maxEntrySize:f=0,sizeCalculation:b,fetchMethod:l,memoMethod:S,noDeleteOnFetchRejection:F,noDeleteOnStaleGet:w,allowStaleOnFetchRejection:m,allowStaleOnFetchAbort:A,ignoreFetchAbort:z,backgroundFetchSize:M=1,perf:v}=t;if(this.backgroundFetchSize=M,v!==void 0&&typeof v?.now!="function")throw new TypeError("perf option must have a now() method if specified");if(this.#w=v??N.defaultPerf,e!==0&&!T(e))throw new TypeError("max option must be a nonnegative integer");let E=e?H(e):Array;if(!E)throw new Error("invalid max value: "+e);if(this.#o=e,this.#c=p,this.maxEntrySize=f||this.#c,this.sizeCalculation=b,this.sizeCalculation){if(!this.#c&&!this.maxEntrySize)throw new TypeError("cannot set sizeCalculation without setting maxSize or maxEntrySize");if(typeof this.sizeCalculation!="function")throw new TypeError("sizeCalculation set to non-function")}if(S!==void 0&&typeof S!="function")throw new TypeError("memoMethod must be a function if defined");if(this.#j=S,l!==void 0&&typeof l!="function")throw new TypeError("fetchMethod must be a function if specified");if(this.#M=l,this.#U=!!l,this.#s=new Map,this.#i=Array.from({length:e}).fill(void 0),this.#t=Array.from({length:e}).fill(void 0),this.#l=new E(e),this.#u=new E(e),this.#a=0,this.#h=0,this.#_=x.create(e),this.#n=0,this.#b=0,typeof o=="function"&&(this.#m=o),typeof d=="function"&&(this.#W=d),typeof _=="function"?(this.#S=_,this.#r=[]):(this.#S=void 0,this.#r=void 0),this.#T=!!this.#m,this.#D=!!this.#W,this.#f=!!this.#S,this.noDisposeOnSet=!!y,this.noUpdateTTL=!!u,this.noDeleteOnFetchRejection=!!F,this.allowStaleOnFetchRejection=!!m,this.allowStaleOnFetchAbort=!!A,this.ignoreFetchAbort=!!z,this.maxEntrySize!==0){if(this.#c!==0&&!T(this.#c))throw new TypeError("maxSize must be a positive integer if specified");if(!T(this.maxEntrySize))throw new TypeError("maxEntrySize must be a positive integer if specified");this.#X();}if(this.allowStale=!!a,this.noDeleteOnStaleGet=!!w,this.updateAgeOnGet=!!r,this.updateAgeOnHas=!!h,this.ttlResolution=T(s)||s===0?s:1,this.ttlAutopurge=!!n,this.ttl=i||0,this.ttl){if(!T(this.ttl))throw new TypeError("ttl must be a positive integer if specified");this.#k();}if(this.#o===0&&this.ttl===0&&this.#c===0)throw new TypeError("At least one of max, maxSize, or ttl is required");if(!this.ttlAutopurge&&!this.#o&&!this.#c){let R="LRU_CACHE_UNBOUNDED";q(R)&&(k.add(R),V("TTL caching without ttlAutopurge, max, or maxSize can result in unbounded memory consumption.","UnboundedCacheWarning",R,c));}}getRemainingTTL(t){return this.#s.has(t)?1/0:0}#k(){let t=new W(this.#o),e=new W(this.#o);this.#d=t,this.#F=e;let i=this.ttlAutopurge?Array.from({length:this.#o}):void 0;this.#g=i,this.#H=(h,a,o=this.#w.now())=>{e[h]=a!==0?o:0,t[h]=a,s(h,a);},this.#R=h=>{e[h]=t[h]!==0?this.#w.now():0,s(h,t[h]);};let s=this.ttlAutopurge?(h,a)=>{if(i?.[h]&&(clearTimeout(i[h]),i[h]=void 0),a&&a!==0&&i){let o=setTimeout(()=>{this.#p(h)&&this.#v(this.#i[h],"expire");},a+1);o.unref&&o.unref(),i[h]=o;}}:()=>{};this.#E=(h,a)=>{if(t[a]){let o=t[a],d=e[a];if(!o||!d)return;h.ttl=o,h.start=d,h.now=n||r();let _=h.now-d;h.remainingTTL=o-_;}};let n=0,r=()=>{let h=this.#w.now();if(this.ttlResolution>0){n=h;let a=setTimeout(()=>n=0,this.ttlResolution);a.unref&&a.unref();}return h};this.getRemainingTTL=h=>{let a=this.#s.get(h);if(a===void 0)return 0;let o=t[a],d=e[a];if(!o||!d)return 1/0;let _=(n||r())-d;return o-_},this.#p=h=>{let a=e[h],o=t[h];return !!o&&!!a&&(n||r())-a>o};}#R=()=>{};#E=()=>{};#H=()=>{};#p=()=>false;#X(){let t=new W(this.#o);this.#b=0,this.#y=t,this.#C=e=>{this.#b-=t[e],t[e]=0;},this.#N=(e,i,s,n)=>{if(!T(s)){if(this.#e(i))return this.backgroundFetchSize;if(n){if(typeof n!="function")throw new TypeError("sizeCalculation must be a function");if(s=n(i,e),!T(s))throw new TypeError("sizeCalculation return invalid (expect positive integer)")}else throw new TypeError("invalid size value (must be positive integer). When maxSize or maxEntrySize is used, sizeCalculation or size must be set.")}return s},this.#I=(e,i,s)=>{if(t[e]=i,this.#c){let n=this.#c-t[e];for(;this.#b>n;)this.#P(true);}this.#b+=t[e],s&&(s.entrySize=i,s.totalCalculatedSize=this.#b);};}#C=t=>{};#I=(t,e,i)=>{};#N=(t,e,i,s)=>{if(i||s)throw new TypeError("cannot set size without setting maxSize or maxEntrySize on cache");return 0};*#A({allowStale:t=this.allowStale}={}){if(this.#n)for(let e=this.#h;this.#V(e)&&((t||!this.#p(e))&&(yield e),e!==this.#a);)e=this.#u[e];}*#z({allowStale:t=this.allowStale}={}){if(this.#n)for(let e=this.#a;this.#V(e)&&((t||!this.#p(e))&&(yield e),e!==this.#h);)e=this.#l[e];}#V(t){return t!==void 0&&this.#s.get(this.#i[t])===t}*entries(){for(let t of this.#A())this.#t[t]!==void 0&&this.#i[t]!==void 0&&!this.#e(this.#t[t])&&(yield [this.#i[t],this.#t[t]]);}*rentries(){for(let t of this.#z())this.#t[t]!==void 0&&this.#i[t]!==void 0&&!this.#e(this.#t[t])&&(yield [this.#i[t],this.#t[t]]);}*keys(){for(let t of this.#A()){let e=this.#i[t];e!==void 0&&!this.#e(this.#t[t])&&(yield e);}}*rkeys(){for(let t of this.#z()){let e=this.#i[t];e!==void 0&&!this.#e(this.#t[t])&&(yield e);}}*values(){for(let t of this.#A())this.#t[t]!==void 0&&!this.#e(this.#t[t])&&(yield this.#t[t]);}*rvalues(){for(let t of this.#z())this.#t[t]!==void 0&&!this.#e(this.#t[t])&&(yield this.#t[t]);}[Symbol.iterator](){return this.entries()}[Symbol.toStringTag]="LRUCache";find(t,e={}){for(let i of this.#A()){let s=this.#t[i],n=this.#e(s)?s.__staleWhileFetching:s;if(n!==void 0&&t(n,this.#i[i],this))return this.#x(this.#i[i],e)}}forEach(t,e=this){for(let i of this.#A()){let s=this.#t[i],n=this.#e(s)?s.__staleWhileFetching:s;n!==void 0&&t.call(e,n,this.#i[i],this);}}rforEach(t,e=this){for(let i of this.#z()){let s=this.#t[i],n=this.#e(s)?s.__staleWhileFetching:s;n!==void 0&&t.call(e,n,this.#i[i],this);}}purgeStale(){let t=false;for(let e of this.#z({allowStale:true}))this.#p(e)&&(this.#v(this.#i[e],"expire"),t=true);return t}info(t){let e=this.#s.get(t);if(e===void 0)return;let i=this.#t[e],s=this.#e(i)?i.__staleWhileFetching:i;if(s===void 0)return;let n={value:s};if(this.#d&&this.#F){let r=this.#d[e],h=this.#F[e];if(r&&h){let a=r-(this.#w.now()-h);n.ttl=a,n.start=Date.now();}}return this.#y&&(n.size=this.#y[e]),n}dump(){let t=[];for(let e of this.#A({allowStale:true})){let i=this.#i[e],s=this.#t[e],n=this.#e(s)?s.__staleWhileFetching:s;if(n===void 0||i===void 0)continue;let r={value:n};if(this.#d&&this.#F){r.ttl=this.#d[e];let h=this.#w.now()-this.#F[e];r.start=Math.floor(Date.now()-h);}this.#y&&(r.size=this.#y[e]),t.unshift([i,r]);}return t}load(t){this.clear();for(let[e,i]of t){if(i.start){let s=Date.now()-i.start;i.start=this.#w.now()-s;}this.#O(e,i.value,i);}}set(t,e,i={}){let{status:s=g.metrics.hasSubscribers?{}:void 0}=i;i.status=s,s&&(s.op="set",s.key=t,e!==void 0&&(s.value=e),s.cache=this);let n=this.#O(t,e,i);return s&&g.metrics.hasSubscribers&&g.metrics.publish(s),n}#O(t,e,i,s){let{ttl:n=this.ttl,start:r,noDisposeOnSet:h=this.noDisposeOnSet,sizeCalculation:a=this.sizeCalculation,status:o}=i,d=this.#e(e);if(e===void 0)return o&&(o.set="deleted"),this.delete(t),this;let{noUpdateTTL:_=this.noUpdateTTL}=i;o&&!d&&(o.value=e);let y=this.#N(t,e,i.size||0,a,o);if(this.maxEntrySize&&y>this.maxEntrySize)return this.#v(t,"set"),o&&(o.set="miss",o.maxEntrySizeExceeded=true),this;let u=this.#n===0?void 0:this.#s.get(t);if(u===void 0)u=this.#n===0?this.#h:this.#_.length!==0?this.#_.pop():this.#n===this.#o?this.#P(false):this.#n,this.#i[u]=t,this.#t[u]=e,this.#s.set(t,u),this.#l[this.#h]=u,this.#u[u]=this.#h,this.#h=u,this.#n++,this.#I(u,y,o),o&&(o.set="add"),_=false,this.#D&&!d&&this.#W?.(e,t,"add");else {this.#L(u);let p=this.#t[u];if(e!==p){if(!h)if(this.#e(p)){p!==s&&p.__abortController.abort(new Error("replaced"));let{__staleWhileFetching:f}=p;f!==void 0&&f!==e&&(this.#T&&this.#m?.(f,t,"set"),this.#f&&this.#r?.push([f,t,"set"]));}else this.#T&&this.#m?.(p,t,"set"),this.#f&&this.#r?.push([p,t,"set"]);if(this.#C(u),this.#I(u,y,o),this.#t[u]=e,!d){let f=p&&this.#e(p)?p.__staleWhileFetching:p,b=f===void 0?"add":e!==f?"replace":"update";o&&(o.set=b,f!==void 0&&(o.oldValue=f)),this.#D&&this.onInsert?.(e,t,b);}}else d||(o&&(o.set="update"),this.#D&&this.onInsert?.(e,t,"update"));}if(n!==0&&!this.#d&&this.#k(),this.#d&&(_||this.#H(u,n,r),o&&this.#E(o,u)),!h&&this.#f&&this.#r){let p=this.#r,f;for(;f=p?.shift();)this.#S?.(...f);}return this}pop(){try{for(;this.#n;){let t=this.#t[this.#a];if(this.#P(!0),this.#e(t)){if(t.__staleWhileFetching)return t.__staleWhileFetching}else if(t!==void 0)return t}}finally{if(this.#f&&this.#r){let t=this.#r,e;for(;e=t?.shift();)this.#S?.(...e);}}}#P(t){let e=this.#a,i=this.#i[e],s=this.#t[e],n=this.#e(s);n&&s.__abortController.abort(new Error("evicted"));let r=n?s.__staleWhileFetching:s;return (this.#T||this.#f)&&r!==void 0&&(this.#T&&this.#m?.(r,i,"evict"),this.#f&&this.#r?.push([r,i,"evict"])),this.#C(e),this.#g?.[e]&&(clearTimeout(this.#g[e]),this.#g[e]=void 0),t&&(this.#i[e]=void 0,this.#t[e]=void 0,this.#_.push(e)),this.#n===1?(this.#a=this.#h=0,this.#_.length=0):this.#a=this.#l[e],this.#s.delete(i),this.#n--,e}has(t,e={}){let{status:i=g.metrics.hasSubscribers?{}:void 0}=e;e.status=i,i&&(i.op="has",i.key=t,i.cache=this);let s=this.#Y(t,e);return g.metrics.hasSubscribers&&g.metrics.publish(i),s}#Y(t,e={}){let{updateAgeOnHas:i=this.updateAgeOnHas,status:s}=e,n=this.#s.get(t);if(n!==void 0){let r=this.#t[n];if(this.#e(r)&&r.__staleWhileFetching===void 0)return  false;if(this.#p(n))s&&(s.has="stale",this.#E(s,n));else return i&&this.#R(n),s&&(s.has="hit",this.#E(s,n)),true}else s&&(s.has="miss");return  false}peek(t,e={}){let{status:i=C()?{}:void 0}=e;i&&(i.op="peek",i.key=t,i.cache=this),e.status=i;let s=this.#J(t,e);return g.metrics.hasSubscribers&&g.metrics.publish(i),s}#J(t,e){let{status:i,allowStale:s=this.allowStale}=e,n=this.#s.get(t);if(n===void 0||!s&&this.#p(n)){i&&(i.peek=n===void 0?"miss":"stale");return}let r=this.#t[n],h=this.#e(r)?r.__staleWhileFetching:r;return i&&(h!==void 0?(i.peek="hit",i.value=h):i.peek="miss"),h}#G(t,e,i,s){let n=e===void 0?void 0:this.#t[e];if(this.#e(n))return n;let r=new AbortController,{signal:h}=i;h?.addEventListener("abort",()=>r.abort(h.reason),{signal:r.signal});let a={signal:r.signal,options:i,context:s},o=(f,b=false)=>{let{aborted:l}=r.signal,S=i.ignoreFetchAbort&&f!==void 0,F=i.ignoreFetchAbort||!!(i.allowStaleOnFetchAbort&&f!==void 0);if(i.status&&(l&&!b?(i.status.fetchAborted=true,i.status.fetchError=r.signal.reason,S&&(i.status.fetchAbortIgnored=true)):i.status.fetchResolved=true),l&&!S&&!b)return _(r.signal.reason,F);let w=u,m=this.#t[e];return (m===u||m===void 0&&S&&b)&&(f===void 0?w.__staleWhileFetching!==void 0?this.#t[e]=w.__staleWhileFetching:this.#v(t,"fetch"):(i.status&&(i.status.fetchUpdated=true),this.#O(t,f,a.options,w))),f},d=f=>(i.status&&(i.status.fetchRejected=true,i.status.fetchError=f),_(f,false)),_=(f,b)=>{let{aborted:l}=r.signal,S=l&&i.allowStaleOnFetchAbort,F=S||i.allowStaleOnFetchRejection,w=F||i.noDeleteOnFetchRejection,m=u;if(this.#t[e]===u&&(!w||!b&&m.__staleWhileFetching===void 0?this.#v(t,"fetch"):S||(this.#t[e]=m.__staleWhileFetching)),F)return i.status&&m.__staleWhileFetching!==void 0&&(i.status.returnedStale=true),m.__staleWhileFetching;if(m.__returned===m)throw f},y=(f,b)=>{let l=this.#M?.(t,n,a);r.signal.addEventListener("abort",()=>{(!i.ignoreFetchAbort||i.allowStaleOnFetchAbort)&&(f(void 0),i.allowStaleOnFetchAbort&&(f=S=>o(S,true)));}),l&&l instanceof Promise?l.then(S=>f(S===void 0?void 0:S),b):l!==void 0&&f(l);};i.status&&(i.status.fetchDispatched=true);let u=new Promise(y).then(o,d),p=Object.assign(u,{__abortController:r,__staleWhileFetching:n,__returned:void 0});return e===void 0?(this.#O(t,p,{...a.options,status:void 0}),e=this.#s.get(t)):this.#t[e]=p,p}#e(t){if(!this.#U)return  false;let e=t;return !!e&&e instanceof Promise&&e.hasOwnProperty("__staleWhileFetching")&&e.__abortController instanceof AbortController}fetch(t,e={}){let i=g.tracing.hasSubscribers,{status:s=C()?{}:void 0}=e;e.status=s,s&&e.context&&(s.context=e.context);let n=this.#q(t,e);return s&&i&&(s.trace=true,g.tracing.tracePromise(()=>n,s).catch(()=>{})),n}async#q(t,e={}){let{allowStale:i=this.allowStale,updateAgeOnGet:s=this.updateAgeOnGet,noDeleteOnStaleGet:n=this.noDeleteOnStaleGet,ttl:r=this.ttl,noDisposeOnSet:h=this.noDisposeOnSet,size:a=0,sizeCalculation:o=this.sizeCalculation,noUpdateTTL:d=this.noUpdateTTL,noDeleteOnFetchRejection:_=this.noDeleteOnFetchRejection,allowStaleOnFetchRejection:y=this.allowStaleOnFetchRejection,ignoreFetchAbort:u=this.ignoreFetchAbort,allowStaleOnFetchAbort:p=this.allowStaleOnFetchAbort,context:f,forceRefresh:b=false,status:l,signal:S}=e;if(l&&(l.op="fetch",l.key=t,b&&(l.forceRefresh=true),l.cache=this),!this.#U)return l&&(l.fetch="get"),this.#x(t,{allowStale:i,updateAgeOnGet:s,noDeleteOnStaleGet:n,status:l});let F={allowStale:i,updateAgeOnGet:s,noDeleteOnStaleGet:n,ttl:r,noDisposeOnSet:h,size:a,sizeCalculation:o,noUpdateTTL:d,noDeleteOnFetchRejection:_,allowStaleOnFetchRejection:y,allowStaleOnFetchAbort:p,ignoreFetchAbort:u,status:l,signal:S},w=this.#s.get(t);if(w===void 0){l&&(l.fetch="miss");let m=this.#G(t,w,F,f);return m.__returned=m}else {let m=this.#t[w];if(this.#e(m)){let E=i&&m.__staleWhileFetching!==void 0;return l&&(l.fetch="inflight",E&&(l.returnedStale=true)),E?m.__staleWhileFetching:m.__returned=m}let A=this.#p(w);if(!b&&!A)return l&&(l.fetch="hit"),this.#L(w),s&&this.#R(w),l&&this.#E(l,w),m;let z=this.#G(t,w,F,f),v=z.__staleWhileFetching!==void 0&&i;return l&&(l.fetch=A?"stale":"refresh",v&&A&&(l.returnedStale=true)),v?z.__staleWhileFetching:z.__returned=z}}forceFetch(t,e={}){let i=g.tracing.hasSubscribers,{status:s=C()?{}:void 0}=e;e.status=s,s&&e.context&&(s.context=e.context);let n=this.#K(t,e);return s&&i&&(s.trace=true,g.tracing.tracePromise(()=>n,s).catch(()=>{})),n}async#K(t,e={}){let i=await this.#q(t,e);if(i===void 0)throw new Error("fetch() returned undefined");return i}memo(t,e={}){let{status:i=g.metrics.hasSubscribers?{}:void 0}=e;e.status=i,i&&(i.op="memo",i.key=t,e.context&&(i.context=e.context),i.cache=this);let s=this.#Q(t,e);return i&&(i.value=s),g.metrics.hasSubscribers&&g.metrics.publish(i),s}#Q(t,e={}){let i=this.#j;if(!i)throw new Error("no memoMethod provided to constructor");let{context:s,status:n,forceRefresh:r,...h}=e;n&&r&&(n.forceRefresh=true);let a=this.#x(t,h),o=r||a===void 0;if(n&&(n.memo=o?"miss":"hit",o||(n.value=a)),!o)return a;let d=i(t,a,{options:h,context:s});return n&&(n.value=d),this.#O(t,d,h),d}get(t,e={}){let{status:i=g.metrics.hasSubscribers?{}:void 0}=e;e.status=i,i&&(i.op="get",i.key=t,i.cache=this);let s=this.#x(t,e);return i&&(s!==void 0&&(i.value=s),g.metrics.hasSubscribers&&g.metrics.publish(i)),s}#x(t,e={}){let{allowStale:i=this.allowStale,updateAgeOnGet:s=this.updateAgeOnGet,noDeleteOnStaleGet:n=this.noDeleteOnStaleGet,status:r}=e,h=this.#s.get(t);if(h===void 0){r&&(r.get="miss");return}let a=this.#t[h],o=this.#e(a);return r&&this.#E(r,h),this.#p(h)?o?(r&&(r.get="stale-fetching"),i&&a.__staleWhileFetching!==void 0?(r&&(r.returnedStale=true),a.__staleWhileFetching):void 0):(n||this.#v(t,"expire"),r&&(r.get="stale"),i?(r&&(r.returnedStale=true),a):void 0):(r&&(r.get=o?"fetching":"hit"),this.#L(h),s&&this.#R(h),o?a.__staleWhileFetching:a)}#B(t,e){this.#u[e]=t,this.#l[t]=e;}#L(t){t!==this.#h&&(t===this.#a?this.#a=this.#l[t]:this.#B(this.#u[t],this.#l[t]),this.#B(this.#h,t),this.#h=t);}delete(t){return this.#v(t,"delete")}#v(t,e){g.metrics.hasSubscribers&&g.metrics.publish({op:"delete",delete:e,key:t,cache:this});let i=false;if(this.#n!==0){let s=this.#s.get(t);if(s!==void 0)if(this.#g?.[s]&&(clearTimeout(this.#g?.[s]),this.#g[s]=void 0),i=true,this.#n===1)this.#$(e);else {this.#C(s);let n=this.#t[s];if(this.#e(n)?n.__abortController.abort(new Error("deleted")):(this.#T||this.#f)&&(this.#T&&this.#m?.(n,t,e),this.#f&&this.#r?.push([n,t,e])),this.#s.delete(t),this.#i[s]=void 0,this.#t[s]=void 0,s===this.#h)this.#h=this.#u[s];else if(s===this.#a)this.#a=this.#l[s];else {let r=this.#u[s];this.#l[r]=this.#l[s];let h=this.#l[s];this.#u[h]=this.#u[s];}this.#n--,this.#_.push(s);}}if(this.#f&&this.#r?.length){let s=this.#r,n;for(;n=s?.shift();)this.#S?.(...n);}return i}clear(){return this.#$("delete")}#$(t){for(let e of this.#z({allowStale:true})){let i=this.#t[e];if(this.#e(i))i.__abortController.abort(new Error("deleted"));else {let s=this.#i[e];this.#T&&this.#m?.(i,s,t),this.#f&&this.#r?.push([i,s,t]);}}if(this.#s.clear(),this.#t.fill(void 0),this.#i.fill(void 0),this.#d&&this.#F){this.#d.fill(0),this.#F.fill(0);for(let e of this.#g??[])e!==void 0&&clearTimeout(e);this.#g?.fill(void 0);}if(this.#y&&this.#y.fill(0),this.#a=0,this.#h=0,this.#_.length=0,this.#b=0,this.#n=0,this.#f&&this.#r){let e=this.#r,i;for(;i=e?.shift();)this.#S?.(...i);}}};index_min.LRUCache=L;
-	
-	return index_min;
-}
-
-/* eslint-disable max-len */
-
-var hosts_1;
-var hasRequiredHosts;
-
-function requireHosts () {
-	if (hasRequiredHosts) return hosts_1;
-	hasRequiredHosts = 1;
-
-	const maybeJoin = (...args) => args.every(arg => arg) ? args.join('') : '';
-	const maybeEncode = (arg) => arg ? encodeURIComponent(arg) : '';
-	const formatHashFragment = (f) => f.toLowerCase()
-	  .replace(/^\W+/g, '') // strip leading non-characters
-	  .replace(/(?<!\W)\W+$/, '') // strip trailing non-characters
-	  .replace(/\//g, '') // strip all slashes
-	  .replace(/\W+/g, '-'); // replace remaining non-characters with '-'
-
-	const defaults = {
-	  sshtemplate: ({ domain, user, project, committish }) =>
-	    `git@${domain}:${user}/${project}.git${maybeJoin('#', committish)}`,
-	  sshurltemplate: ({ domain, user, project, committish }) =>
-	    `git+ssh://git@${domain}/${user}/${project}.git${maybeJoin('#', committish)}`,
-	  edittemplate: ({ domain, user, project, committish, editpath, path }) =>
-	    `https://${domain}/${user}/${project}${maybeJoin('/', editpath, '/', maybeEncode(committish || 'HEAD'), '/', path)}`,
-	  browsetemplate: ({ domain, user, project, committish, treepath }) =>
-	    `https://${domain}/${user}/${project}${maybeJoin('/', treepath, '/', maybeEncode(committish))}`,
-	  browsetreetemplate: ({ domain, user, project, committish, treepath, path, fragment, hashformat }) =>
-	    `https://${domain}/${user}/${project}/${treepath}/${maybeEncode(committish || 'HEAD')}/${path}${maybeJoin('#', hashformat(fragment || ''))}`,
-	  browseblobtemplate: ({ domain, user, project, committish, blobpath, path, fragment, hashformat }) =>
-	    `https://${domain}/${user}/${project}/${blobpath}/${maybeEncode(committish || 'HEAD')}/${path}${maybeJoin('#', hashformat(fragment || ''))}`,
-	  docstemplate: ({ domain, user, project, treepath, committish }) =>
-	    `https://${domain}/${user}/${project}${maybeJoin('/', treepath, '/', maybeEncode(committish))}#readme`,
-	  httpstemplate: ({ auth, domain, user, project, committish }) =>
-	    `git+https://${maybeJoin(auth, '@')}${domain}/${user}/${project}.git${maybeJoin('#', committish)}`,
-	  filetemplate: ({ domain, user, project, committish, path }) =>
-	    `https://${domain}/${user}/${project}/raw/${maybeEncode(committish || 'HEAD')}/${path}`,
-	  shortcuttemplate: ({ type, user, project, committish }) =>
-	    `${type}:${user}/${project}${maybeJoin('#', committish)}`,
-	  pathtemplate: ({ user, project, committish }) =>
-	    `${user}/${project}${maybeJoin('#', committish)}`,
-	  bugstemplate: ({ domain, user, project }) =>
-	    `https://${domain}/${user}/${project}/issues`,
-	  hashformat: formatHashFragment,
-	};
-
-	const hosts = {};
-	hosts.github = {
-	  // First two are insecure and generally shouldn't be used any more, but
-	  // they are still supported.
-	  protocols: ['git:', 'http:', 'git+ssh:', 'git+https:', 'ssh:', 'https:'],
-	  domain: 'github.com',
-	  treepath: 'tree',
-	  blobpath: 'blob',
-	  editpath: 'edit',
-	  filetemplate: ({ auth, user, project, committish, path }) =>
-	    `https://${maybeJoin(auth, '@')}raw.githubusercontent.com/${user}/${project}/${maybeEncode(committish || 'HEAD')}/${path}`,
-	  gittemplate: ({ auth, domain, user, project, committish }) =>
-	    `git://${maybeJoin(auth, '@')}${domain}/${user}/${project}.git${maybeJoin('#', committish)}`,
-	  tarballtemplate: ({ domain, user, project, committish }) =>
-	    `https://codeload.${domain}/${user}/${project}/tar.gz/${maybeEncode(committish || 'HEAD')}`,
-	  extract: (url) => {
-	    let [, user, project, type, committish] = url.pathname.split('/', 5);
-	    if (type && type !== 'tree') {
-	      return
-	    }
-
-	    if (!type) {
-	      committish = url.hash.slice(1);
-	    }
-
-	    if (project && project.endsWith('.git')) {
-	      project = project.slice(0, -4);
-	    }
-
-	    if (!user || !project) {
-	      return
-	    }
-
-	    return { user, project, committish }
-	  },
-	};
-
-	hosts.bitbucket = {
-	  protocols: ['git+ssh:', 'git+https:', 'ssh:', 'https:'],
-	  domain: 'bitbucket.org',
-	  treepath: 'src',
-	  blobpath: 'src',
-	  editpath: '?mode=edit',
-	  edittemplate: ({ domain, user, project, committish, treepath, path, editpath }) =>
-	    `https://${domain}/${user}/${project}${maybeJoin('/', treepath, '/', maybeEncode(committish || 'HEAD'), '/', path, editpath)}`,
-	  tarballtemplate: ({ domain, user, project, committish }) =>
-	    `https://${domain}/${user}/${project}/get/${maybeEncode(committish || 'HEAD')}.tar.gz`,
-	  extract: (url) => {
-	    let [, user, project, aux] = url.pathname.split('/', 4);
-	    if (['get'].includes(aux)) {
-	      return
-	    }
-
-	    if (project && project.endsWith('.git')) {
-	      project = project.slice(0, -4);
-	    }
-
-	    if (!user || !project) {
-	      return
-	    }
-
-	    return { user, project, committish: url.hash.slice(1) }
-	  },
-	};
-
-	hosts.gitlab = {
-	  protocols: ['git+ssh:', 'git+https:', 'ssh:', 'https:'],
-	  domain: 'gitlab.com',
-	  treepath: 'tree',
-	  blobpath: 'tree',
-	  editpath: '-/edit',
-	  tarballtemplate: ({ domain, user, project, committish }) =>
-	    `https://${domain}/api/v4/projects/${maybeEncode(user + '/' + project)}/repository/archive.tar.gz?sha=${maybeEncode(committish || 'HEAD')}`,
-	  extract: (url) => {
-	    const path = url.pathname.slice(1);
-	    if (path.includes('/-/') || path.includes('/archive.tar.gz')) {
-	      return
-	    }
-
-	    const segments = path.split('/');
-	    let project = segments.pop();
-	    if (project.endsWith('.git')) {
-	      project = project.slice(0, -4);
-	    }
-
-	    const user = segments.join('/');
-	    if (!user || !project) {
-	      return
-	    }
-
-	    return { user, project, committish: url.hash.slice(1) }
-	  },
-	};
-
-	hosts.gist = {
-	  protocols: ['git:', 'git+ssh:', 'git+https:', 'ssh:', 'https:'],
-	  domain: 'gist.github.com',
-	  editpath: 'edit',
-	  sshtemplate: ({ domain, project, committish }) =>
-	    `git@${domain}:${project}.git${maybeJoin('#', committish)}`,
-	  sshurltemplate: ({ domain, project, committish }) =>
-	    `git+ssh://git@${domain}/${project}.git${maybeJoin('#', committish)}`,
-	  edittemplate: ({ domain, user, project, committish, editpath }) =>
-	    `https://${domain}/${user}/${project}${maybeJoin('/', maybeEncode(committish))}/${editpath}`,
-	  browsetemplate: ({ domain, project, committish }) =>
-	    `https://${domain}/${project}${maybeJoin('/', maybeEncode(committish))}`,
-	  browsetreetemplate: ({ domain, project, committish, path, hashformat }) =>
-	    `https://${domain}/${project}${maybeJoin('/', maybeEncode(committish))}${maybeJoin('#', hashformat(path))}`,
-	  browseblobtemplate: ({ domain, project, committish, path, hashformat }) =>
-	    `https://${domain}/${project}${maybeJoin('/', maybeEncode(committish))}${maybeJoin('#', hashformat(path))}`,
-	  docstemplate: ({ domain, project, committish }) =>
-	    `https://${domain}/${project}${maybeJoin('/', maybeEncode(committish))}`,
-	  httpstemplate: ({ domain, project, committish }) =>
-	    `git+https://${domain}/${project}.git${maybeJoin('#', committish)}`,
-	  filetemplate: ({ user, project, committish, path }) =>
-	    `https://gist.githubusercontent.com/${user}/${project}/raw${maybeJoin('/', maybeEncode(committish))}/${path}`,
-	  shortcuttemplate: ({ type, project, committish }) =>
-	    `${type}:${project}${maybeJoin('#', committish)}`,
-	  pathtemplate: ({ project, committish }) =>
-	    `${project}${maybeJoin('#', committish)}`,
-	  bugstemplate: ({ domain, project }) =>
-	    `https://${domain}/${project}`,
-	  gittemplate: ({ domain, project, committish }) =>
-	    `git://${domain}/${project}.git${maybeJoin('#', committish)}`,
-	  tarballtemplate: ({ project, committish }) =>
-	    `https://codeload.github.com/gist/${project}/tar.gz/${maybeEncode(committish || 'HEAD')}`,
-	  extract: (url) => {
-	    let [, user, project, aux] = url.pathname.split('/', 4);
-	    if (aux === 'raw') {
-	      return
-	    }
-
-	    if (!project) {
-	      if (!user) {
-	        return
-	      }
-
-	      project = user;
-	      user = null;
-	    }
-
-	    if (project.endsWith('.git')) {
-	      project = project.slice(0, -4);
-	    }
-
-	    return { user, project, committish: url.hash.slice(1) }
-	  },
-	  hashformat: function (fragment) {
-	    return fragment && 'file-' + formatHashFragment(fragment)
-	  },
-	};
-
-	hosts.sourcehut = {
-	  protocols: ['git+ssh:', 'https:'],
-	  domain: 'git.sr.ht',
-	  treepath: 'tree',
-	  blobpath: 'tree',
-	  filetemplate: ({ domain, user, project, committish, path }) =>
-	    `https://${domain}/${user}/${project}/blob/${maybeEncode(committish) || 'HEAD'}/${path}`,
-	  httpstemplate: ({ domain, user, project, committish }) =>
-	    `https://${domain}/${user}/${project}${maybeJoin('#', committish)}`,
-	  tarballtemplate: ({ domain, user, project, committish }) =>
-	    `https://${domain}/${user}/${project}/archive/${maybeEncode(committish) || 'HEAD'}.tar.gz`,
-	  bugstemplate: () => null,
-	  extract: (url) => {
-	    let [, user, project, aux] = url.pathname.split('/', 4);
-
-	    // tarball url
-	    if (['archive'].includes(aux)) {
-	      return
-	    }
-
-	    if (project && project.endsWith('.git')) {
-	      project = project.slice(0, -4);
-	    }
-
-	    if (!user || !project) {
-	      return
-	    }
-
-	    return { user, project, committish: url.hash.slice(1) }
-	  },
-	};
-
-	for (const [name, host] of Object.entries(hosts)) {
-	  hosts[name] = Object.assign({}, defaults, host);
-	}
-
-	hosts_1 = hosts;
-	return hosts_1;
-}
-
-var parseUrl$1;
-var hasRequiredParseUrl;
-
-function requireParseUrl () {
-	if (hasRequiredParseUrl) return parseUrl$1;
-	hasRequiredParseUrl = 1;
-	const url = require('url');
-
-	const lastIndexOfBefore = (str, char, beforeChar) => {
-	  const startPosition = str.indexOf(beforeChar);
-	  return str.lastIndexOf(char, startPosition > -1 ? startPosition : Infinity)
-	};
-
-	const safeUrl = (u) => {
-	  try {
-	    return new url.URL(u)
-	  } catch {
-	    // this fn should never throw
-	  }
-	};
-
-	// accepts input like git:github.com:user/repo and inserts the // after the first :
-	const correctProtocol = (arg, protocols) => {
-	  const firstColon = arg.indexOf(':');
-	  const proto = arg.slice(0, firstColon + 1);
-	  if (Object.prototype.hasOwnProperty.call(protocols, proto)) {
-	    return arg
-	  }
-
-	  if (arg.substr(firstColon, 3) === '://') {
-	    // If arg is given as <foo>://<bar>, then this is already a valid URL.
-	    return arg
-	  }
-
-	  const firstAt = arg.indexOf('@');
-	  if (firstAt > -1) {
-	    if (firstAt > firstColon) {
-	      // URL has the form of <foo>:<bar>@<baz>. Assume this is a git+ssh URL.
-	      return `git+ssh://${arg}`
-	    } else {
-	      // URL has the form 'git@github.com:npm/hosted-git-info.git'.
-	      return arg
-	    }
-	  }
-
-	  // Correct <foo>:<bar> to <foo>://<bar>
-	  return `${arg.slice(0, firstColon + 1)}//${arg.slice(firstColon + 1)}`
-	};
-
-	// attempt to correct an scp style url so that it will parse with `new URL()`
-	const correctUrl = (giturl) => {
-	  // ignore @ that come after the first hash since the denotes the start
-	  // of a committish which can contain @ characters
-	  const firstAt = lastIndexOfBefore(giturl, '@', '#');
-	  // ignore colons that come after the hash since that could include colons such as:
-	  // git@github.com:user/package-2#semver:^1.0.0
-	  const lastColonBeforeHash = lastIndexOfBefore(giturl, ':', '#');
-
-	  if (lastColonBeforeHash > firstAt) {
-	    // the last : comes after the first @ (or there is no @)
-	    // like it would in:
-	    // proto://hostname.com:user/repo
-	    // username@hostname.com:user/repo
-	    // :password@hostname.com:user/repo
-	    // username:password@hostname.com:user/repo
-	    // proto://username@hostname.com:user/repo
-	    // proto://:password@hostname.com:user/repo
-	    // proto://username:password@hostname.com:user/repo
-	    // then we replace the last : with a / to create a valid path
-	    giturl = giturl.slice(0, lastColonBeforeHash) + '/' + giturl.slice(lastColonBeforeHash + 1);
-	  }
-
-	  if (lastIndexOfBefore(giturl, ':', '#') === -1 && giturl.indexOf('//') === -1) {
-	    // we have no : at all
-	    // as it would be in:
-	    // username@hostname.com/user/repo
-	    // then we prepend a protocol
-	    giturl = `git+ssh://${giturl}`;
-	  }
-
-	  return giturl
-	};
-
-	parseUrl$1 = (giturl, protocols) => {
-	  const withProtocol = protocols ? correctProtocol(giturl, protocols) : giturl;
-	  return safeUrl(withProtocol) || safeUrl(correctUrl(withProtocol))
-	};
-	return parseUrl$1;
-}
-
-var fromUrl;
-var hasRequiredFromUrl;
-
-function requireFromUrl () {
-	if (hasRequiredFromUrl) return fromUrl;
-	hasRequiredFromUrl = 1;
-
-	const parseUrl = requireParseUrl();
-
-	// look for github shorthand inputs, such as npm/cli
-	const isGitHubShorthand = (arg) => {
-	  // it cannot contain whitespace before the first #
-	  // it cannot start with a / because that's probably an absolute file path
-	  // but it must include a slash since repos are username/repository
-	  // it cannot start with a . because that's probably a relative file path
-	  // it cannot start with an @ because that's a scoped package if it passes the other tests
-	  // it cannot contain a : before a # because that tells us that there's a protocol
-	  // a second / may not exist before a #
-	  const firstHash = arg.indexOf('#');
-	  const firstSlash = arg.indexOf('/');
-	  const secondSlash = arg.indexOf('/', firstSlash + 1);
-	  const firstColon = arg.indexOf(':');
-	  const firstSpace = /\s/.exec(arg);
-	  const firstAt = arg.indexOf('@');
-
-	  const spaceOnlyAfterHash = !firstSpace || (firstHash > -1 && firstSpace.index > firstHash);
-	  const atOnlyAfterHash = firstAt === -1 || (firstHash > -1 && firstAt > firstHash);
-	  const colonOnlyAfterHash = firstColon === -1 || (firstHash > -1 && firstColon > firstHash);
-	  const secondSlashOnlyAfterHash = secondSlash === -1 || (firstHash > -1 && secondSlash > firstHash);
-	  const hasSlash = firstSlash > 0;
-	  // if a # is found, what we really want to know is that the character
-	  // immediately before # is not a /
-	  const doesNotEndWithSlash = firstHash > -1 ? arg[firstHash - 1] !== '/' : !arg.endsWith('/');
-	  const doesNotStartWithDot = !arg.startsWith('.');
-
-	  return spaceOnlyAfterHash && hasSlash && doesNotEndWithSlash &&
-	    doesNotStartWithDot && atOnlyAfterHash && colonOnlyAfterHash &&
-	    secondSlashOnlyAfterHash
-	};
-
-	fromUrl = (giturl, opts, { gitHosts, protocols }) => {
-	  if (!giturl) {
-	    return
-	  }
-
-	  const correctedUrl = isGitHubShorthand(giturl) ? `github:${giturl}` : giturl;
-	  const parsed = parseUrl(correctedUrl, protocols);
-	  if (!parsed) {
-	    return
-	  }
-
-	  const gitHostShortcut = gitHosts.byShortcut[parsed.protocol];
-	  const gitHostDomain = gitHosts.byDomain[parsed.hostname.startsWith('www.')
-	    ? parsed.hostname.slice(4)
-	    : parsed.hostname];
-	  const gitHostName = gitHostShortcut || gitHostDomain;
-	  if (!gitHostName) {
-	    return
-	  }
-
-	  const gitHostInfo = gitHosts[gitHostShortcut || gitHostDomain];
-	  let auth = null;
-	  if (protocols[parsed.protocol]?.auth && (parsed.username || parsed.password)) {
-	    auth = `${parsed.username}${parsed.password ? ':' + parsed.password : ''}`;
-	  }
-
-	  let committish = null;
-	  let user = null;
-	  let project = null;
-	  let defaultRepresentation = null;
-
-	  try {
-	    if (gitHostShortcut) {
-	      let pathname = parsed.pathname.startsWith('/') ? parsed.pathname.slice(1) : parsed.pathname;
-	      const firstAt = pathname.indexOf('@');
-	      // we ignore auth for shortcuts, so just trim it out
-	      if (firstAt > -1) {
-	        pathname = pathname.slice(firstAt + 1);
-	      }
-
-	      const lastSlash = pathname.lastIndexOf('/');
-	      if (lastSlash > -1) {
-	        user = decodeURIComponent(pathname.slice(0, lastSlash));
-	        // we want nulls only, never empty strings
-	        if (!user) {
-	          user = null;
-	        }
-	        project = decodeURIComponent(pathname.slice(lastSlash + 1));
-	      } else {
-	        project = decodeURIComponent(pathname);
-	      }
-
-	      if (project.endsWith('.git')) {
-	        project = project.slice(0, -4);
-	      }
-
-	      if (parsed.hash) {
-	        committish = decodeURIComponent(parsed.hash.slice(1));
-	      }
-
-	      defaultRepresentation = 'shortcut';
-	    } else {
-	      if (!gitHostInfo.protocols.includes(parsed.protocol)) {
-	        return
-	      }
-
-	      const segments = gitHostInfo.extract(parsed);
-	      if (!segments) {
-	        return
-	      }
-
-	      user = segments.user && decodeURIComponent(segments.user);
-	      project = decodeURIComponent(segments.project);
-	      committish = decodeURIComponent(segments.committish);
-	      defaultRepresentation = protocols[parsed.protocol]?.name || parsed.protocol.slice(0, -1);
-	    }
-	  } catch (err) {
-	    /* istanbul ignore else */
-	    if (err instanceof URIError) {
-	      return
-	    } else {
-	      throw err
-	    }
-	  }
-
-	  return [gitHostName, user, auth, project, committish, defaultRepresentation, opts]
-	};
-	return fromUrl;
-}
-
-var lib$4;
-var hasRequiredLib$4;
-
-function requireLib$4 () {
-	if (hasRequiredLib$4) return lib$4;
-	hasRequiredLib$4 = 1;
-
-	const { LRUCache } = /*@__PURE__*/ requireIndex_min();
-	const hosts = requireHosts();
-	const fromUrl = requireFromUrl();
-	const parseUrl = requireParseUrl();
-
-	const cache = new LRUCache({ max: 1000 });
-
-	function unknownHostedUrl (url) {
-	  try {
-	    const {
-	      protocol,
-	      hostname,
-	      pathname,
-	    } = new URL(url);
-
-	    if (!hostname) {
-	      return null
-	    }
-
-	    const proto = /(?:git\+)http:$/.test(protocol) ? 'http:' : 'https:';
-	    const path = pathname.replace(/\.git$/, '');
-	    return `${proto}//${hostname}${path}`
-	  } catch {
-	    return null
-	  }
-	}
-
-	class GitHost {
-	  constructor (type, user, auth, project, committish, defaultRepresentation, opts = {}) {
-	    Object.assign(this, GitHost.#gitHosts[type], {
-	      type,
-	      user,
-	      auth,
-	      project,
-	      committish,
-	      default: defaultRepresentation,
-	      opts,
-	    });
-	  }
-
-	  static #gitHosts = { byShortcut: {}, byDomain: {} }
-	  static #protocols = {
-	    'git+ssh:': { name: 'sshurl' },
-	    'ssh:': { name: 'sshurl' },
-	    'git+https:': { name: 'https', auth: true },
-	    'git:': { auth: true },
-	    'http:': { auth: true },
-	    'https:': { auth: true },
-	    'git+http:': { auth: true },
-	  }
-
-	  static addHost (name, host) {
-	    GitHost.#gitHosts[name] = host;
-	    GitHost.#gitHosts.byDomain[host.domain] = name;
-	    GitHost.#gitHosts.byShortcut[`${name}:`] = name;
-	    GitHost.#protocols[`${name}:`] = { name };
-	  }
-
-	  static fromUrl (giturl, opts) {
-	    if (typeof giturl !== 'string') {
-	      return
-	    }
-
-	    const key = giturl + JSON.stringify(opts || {});
-
-	    if (!cache.has(key)) {
-	      const hostArgs = fromUrl(giturl, opts, {
-	        gitHosts: GitHost.#gitHosts,
-	        protocols: GitHost.#protocols,
-	      });
-	      cache.set(key, hostArgs ? new GitHost(...hostArgs) : undefined);
-	    }
-
-	    return cache.get(key)
-	  }
-
-	  static fromManifest (manifest, opts = {}) {
-	    if (!manifest || typeof manifest !== 'object') {
-	      return
-	    }
-
-	    const r = manifest.repository;
-	    // TODO: look into also checking the `bugs`/`homepage` URLs
-
-	    const rurl = r && (
-	      typeof r === 'string'
-	        ? r
-	        : typeof r === 'object' && typeof r.url === 'string'
-	          ? r.url
-	          : null
-	    );
-
-	    if (!rurl) {
-	      throw new Error('no repository')
-	    }
-
-	    const info = (rurl && GitHost.fromUrl(rurl.replace(/^git\+/, ''), opts)) || null;
-	    if (info) {
-	      return info
-	    }
-	    const unk = unknownHostedUrl(rurl);
-	    return GitHost.fromUrl(unk, opts) || unk
-	  }
-
-	  static parseUrl (url) {
-	    return parseUrl(url)
-	  }
-
-	  #fill (template, opts) {
-	    if (typeof template !== 'function') {
-	      return null
-	    }
-
-	    const options = { ...this, ...this.opts, ...opts };
-
-	    // the path should always be set so we don't end up with 'undefined' in urls
-	    if (!options.path) {
-	      options.path = '';
-	    }
-
-	    // template functions will insert the leading slash themselves
-	    if (options.path.startsWith('/')) {
-	      options.path = options.path.slice(1);
-	    }
-
-	    if (options.noCommittish) {
-	      options.committish = null;
-	    }
-
-	    const result = template(options);
-	    return options.noGitPlus && result.startsWith('git+') ? result.slice(4) : result
-	  }
-
-	  hash () {
-	    return this.committish ? `#${this.committish}` : ''
-	  }
-
-	  ssh (opts) {
-	    return this.#fill(this.sshtemplate, opts)
-	  }
-
-	  sshurl (opts) {
-	    return this.#fill(this.sshurltemplate, opts)
-	  }
-
-	  browse (path, ...args) {
-	    // not a string, treat path as opts
-	    if (typeof path !== 'string') {
-	      return this.#fill(this.browsetemplate, path)
-	    }
-
-	    if (typeof args[0] !== 'string') {
-	      return this.#fill(this.browsetreetemplate, { ...args[0], path })
-	    }
-
-	    return this.#fill(this.browsetreetemplate, { ...args[1], fragment: args[0], path })
-	  }
-
-	  // If the path is known to be a file, then browseFile should be used. For some hosts
-	  // the url is the same as browse, but for others like GitHub a file can use both `/tree/`
-	  // and `/blob/` in the path. When using a default committish of `HEAD` then the `/tree/`
-	  // path will redirect to a specific commit. Using the `/blob/` path avoids this and
-	  // does not redirect to a different commit.
-	  browseFile (path, ...args) {
-	    if (typeof args[0] !== 'string') {
-	      return this.#fill(this.browseblobtemplate, { ...args[0], path })
-	    }
-
-	    return this.#fill(this.browseblobtemplate, { ...args[1], fragment: args[0], path })
-	  }
-
-	  docs (opts) {
-	    return this.#fill(this.docstemplate, opts)
-	  }
-
-	  bugs (opts) {
-	    return this.#fill(this.bugstemplate, opts)
-	  }
-
-	  https (opts) {
-	    return this.#fill(this.httpstemplate, opts)
-	  }
-
-	  git (opts) {
-	    return this.#fill(this.gittemplate, opts)
-	  }
-
-	  shortcut (opts) {
-	    return this.#fill(this.shortcuttemplate, opts)
-	  }
-
-	  path (opts) {
-	    return this.#fill(this.pathtemplate, opts)
-	  }
-
-	  tarball (opts) {
-	    return this.#fill(this.tarballtemplate, { ...opts, noCommittish: false })
-	  }
-
-	  file (path, opts) {
-	    return this.#fill(this.filetemplate, { ...opts, path })
-	  }
-
-	  edit (path, opts) {
-	    return this.#fill(this.edittemplate, { ...opts, path })
-	  }
-
-	  getDefaultRepresentation () {
-	    return this.default
-	  }
-
-	  toString (opts) {
-	    if (this.default && typeof this[this.default] === 'function') {
-	      return this[this.default](opts)
-	    }
-
-	    return this.sshurl(opts)
-	  }
-	}
-
-	for (const [name, host] of Object.entries(hosts)) {
-	  GitHost.addHost(name, host);
-	}
-
-	lib$4 = GitHost;
-	return lib$4;
-}
 
 var libExports$1 = requireLib$4();
 var hostedGitInfo = /*@__PURE__*/getDefaultExportFromCjs(libExports$1);
@@ -287122,7 +284972,9 @@ var expand$1 = async (repositoryUrl, { cwd }, branches) => {
       ...branches,
       ...remove(gitBranches, (name) => micromatch(gitBranches, branch.name).includes(name)).map((name) => ({
         name,
-        ...mapValues(omit$1(branch, "name"), (value) => (isString(value) ? template(value)({ name }) : value)),
+        ...mapValues(omit$1(branch, "name"), (value) =>
+          isString(value) ? template(value, { evaluate: false, escape: false })({ name }) : value
+        ),
       })),
     ],
     []
@@ -287136,7 +284988,10 @@ var getTags = async ({ cwd, env, options: { tagFormat } }, branches) => {
   // by replacing the `version` variable in the template by `(.+)`.
   // The `tagFormat` is compiled with space as the `version` as it's an invalid tag character,
   // so it's guaranteed to no be present in the `tagFormat`.
-  const tagRegexp = `^${escapeRegExp$1(template(tagFormat)({ version: " " })).replace(" ", "(.+)")}`;
+  const tagRegexp = `^${escapeRegExp$1(template(tagFormat, { evaluate: false, escape: false })({ version: " " })).replace(
+    " ",
+    "(.+)"
+  )}`;
 
   // Get the tags notes for all the tags in the repository
   const tagsNotesMap = await getTagsNotes({ cwd, env });
@@ -287192,7 +285047,7 @@ function maintenance({ maintenance, release }) {
       FIRST_RELEASE;
     // The upper bound is the lowest version between the `base` version and the upper bound of the current branch range
     const max = lowest(base, getUpperBound(range));
-    const diff = semverDiff(min, max);
+    const diff = getVersionDiff(min, max);
     return {
       ...rest,
       type: "maintenance",
@@ -287225,7 +285080,7 @@ function release({ release }) {
         ? undefined
         : getFirstVersion(tagsToVersions(release[idx + 1].tags), release.slice(0, idx + 1));
 
-    const diff = bound ? semverDiff(lastVersion, bound) : null;
+    const diff = bound ? getVersionDiff(lastVersion, bound) : null;
     return {
       ...rest,
       channel: idx === 0 ? channel : isNil(channel) ? name : channel,
@@ -291506,7 +289361,7 @@ var getLogger = ({ stdout, stderr }) =>
 node_module.createRequire((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('main.cjs', document.baseURI).href)));
 const pkg = {
   "name": "semantic-release",
-  "version": "25.0.1"}
+  "version": "25.0.9"}
 ;
 
 let markedOptionsSet = false;
@@ -297278,7 +295133,9 @@ async function executeAction(waiterFn, ghCtx, sshCommandRunner) {
         env: {
             ...process.env,
             GITHUB_TOKEN: githubToken,
-            SSH_AUTH_SOCK: process.env.SSH_AUTH_SOCK,
+            ...(process.env.SSH_AUTH_SOCK !== undefined && {
+                SSH_AUTH_SOCK: process.env.SSH_AUTH_SOCK,
+            }),
         },
     });
     endGroup();
