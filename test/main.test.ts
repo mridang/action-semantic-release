@@ -2,6 +2,7 @@
  * @file End-to-end tests that bundle the action with Rollup, run the bundle in
  * a VM context and exercise it against a local Git repository.
  */
+import { test } from '@jest/globals';
 import { copyFile, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { withTemporaryDir } from './helpers/with-temporary-dir.js';
@@ -169,7 +170,7 @@ const matrix = [
 
 test.each(matrix)(
   'runs semantic-release for event "$eventName" with ref "$ref" and wait="$wait" (shouldRun: $shouldRun)',
-  ({ eventName, ref }) => {
+  async ({ eventName, ref }) => {
     return withTemporaryDir(
       withGitRepo(
         [

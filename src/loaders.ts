@@ -126,7 +126,7 @@ async function writePluginPackageJson(
 function declarativeLoader(loader: Loader): Loader {
   return async (filepath, content) => {
     logDebug(`Loading declarative config: ${filepath}`);
-    const config = await loader(filepath, content);
+    const config: unknown = await loader(filepath, content);
     const plugins = extractPluginNames(config);
 
     if (plugins.length > 0) {
@@ -148,7 +148,7 @@ function declarativeLoader(loader: Loader): Loader {
  * await runInherited('npm --version', process.cwd());
  * ```
  */
-function runInherited(command: string, cwd: string): Promise<void> {
+async function runInherited(command: string, cwd: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, { cwd, stdio: 'inherit', shell: true });
     child.on('error', reject);
@@ -177,7 +177,7 @@ function runInherited(command: string, cwd: string): Promise<void> {
 function imperativeLoader(loader: Loader, allowForce: boolean): Loader {
   return async (filepath, content) => {
     logDebug(`Loading imperative config: ${filepath}`);
-    const config = await loader(filepath, content);
+    const config: unknown = await loader(filepath, content);
     const cwd = path.dirname(filepath);
 
     startGroup('Installing dependencies');

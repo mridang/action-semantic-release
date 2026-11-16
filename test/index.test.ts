@@ -2,7 +2,7 @@
  * @file Integration tests for the action entrypoint that run `run` against a
  * real local Git repository and check the outcome for each event type.
  */
-import { expect } from '@jest/globals';
+import { expect, test } from '@jest/globals';
 import {
   access,
   appendFile,
@@ -69,9 +69,9 @@ async function runAction(
       GITHUB_STEP_SUMMARY: summaryPath,
       GITHUB_EVENT_PATH: eventPath,
     },
-    () => run(waiterFn, undefined, sshCommandRunner),
+    async () => run(waiterFn, undefined, sshCommandRunner),
   );
-  return await wrapped();
+  return wrapped();
 }
 
 const matrix = [
@@ -103,7 +103,7 @@ const matrix = [
 
 test.each(matrix)(
   'runs semantic-release for event "$eventName" with ref "$ref" and wait="$wait" (shouldRun: $shouldRun)',
-  ({ eventName, ref, wait, shouldRun }) => {
+  async ({ eventName, ref, wait, shouldRun }) => {
     return withTemporaryDir(
       withGitRepo(
         [
@@ -157,7 +157,7 @@ test.each(matrix)(
   },
 );
 
-test('configures SSH deploy key when provided', () => {
+test('configures SSH deploy key when provided', async () => {
   return withTemporaryDir(
     withGitRepo(
       ['chore: init', 'feat: some feature'],
