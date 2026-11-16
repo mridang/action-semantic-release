@@ -14,7 +14,8 @@ import {
 } from '@actions/core';
 // eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
 import { cosmiconfig, type CosmiconfigResult } from 'cosmiconfig';
-import semanticRelease, { Options, Result } from 'semantic-release';
+import type { Options, Result } from 'semantic-release';
+import semanticRelease from 'semantic-release';
 import { createLoaders } from './loaders.js';
 import { context } from '@actions/github';
 import waitForAllChecks from './waiter.js';

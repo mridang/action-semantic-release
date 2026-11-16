@@ -2,11 +2,13 @@
  * @file Test helper that serves a freshly created Git repository over HTTP
  * for end-to-end tests of Git operations.
  */
-import { SimpleGit, simpleGit } from 'simple-git';
+import type { SimpleGit } from 'simple-git';
+import { simpleGit } from 'simple-git';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import type { AddressInfo, Server as HttpServer } from 'node:net';
 import { Git } from 'node-git-server';
+import type { FetchData, PushData } from 'node-git-server';
 
 type GitRepoContext = { tmp: string; remoteUrl: string };
 
@@ -37,8 +39,8 @@ export function withGitRepo(
       autoCreate: true,
     });
 
-    server.on('push', (push) => push.accept());
-    server.on('fetch', (fetch) => fetch.accept());
+    server.on('push', (push: PushData) => push.accept());
+    server.on('fetch', (fetch: FetchData) => fetch.accept());
 
     try {
       const port = await new Promise<number>((resolve, reject) => {

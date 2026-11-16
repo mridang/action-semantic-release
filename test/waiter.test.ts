@@ -1,7 +1,14 @@
 /**
  * @file Unit tests for the check-waiting logic, using mocked GitHub API responses.
  */
-import { jest } from '@jest/globals';
+import {
+  afterAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 
 type Check = {
   name: string;

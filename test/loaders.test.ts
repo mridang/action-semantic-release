@@ -2,6 +2,7 @@
  * @file Tests that the cosmiconfig loaders write the package.json and lock
  * file needed for declarative and imperative semantic-release configurations.
  */
+import { it, expect } from '@jest/globals';
 import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
@@ -33,6 +34,13 @@ function withTemporaryDir(fn: (ctx: { tmp: string }) => void | Promise<void>) {
   };
 }
 
+/** The parts of a generated package.json or package-lock.json that the tests read. */
+interface GeneratedManifest {
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  packages?: Record<string, unknown>;
+}
+
 const baseConfig = {
   branches: ['main'],
   plugins: [
@@ -52,7 +60,7 @@ it.each([
   ['release.config.ts', false, `export default {};`],
 ])(
   'correctly handles %s config with isDeclarative = %s',
-  (filename, isDeclarative, contents) =>
+  async (filename, isDeclarative, contents) =>
     withTemporaryDir(async ({ tmp }) => {
       const filepath = path.join(tmp, filename);
       await writeFile(filepath, contents);
@@ -89,14 +97,18 @@ it.each([
       await expect(access(pkgJsonPath)).resolves.toBeUndefined();
       await expect(access(pkgLockPath)).resolves.toBeUndefined();
 
-      const pkgJson = JSON.parse(await readFile(pkgJsonPath, 'utf8'));
+      const pkgJson = JSON.parse(
+        await readFile(pkgJsonPath, 'utf8'),
+      ) as GeneratedManifest;
       const deps = pkgJson.dependencies || pkgJson.devDependencies;
       expect(deps).toMatchObject({
         '@semantic-release/commit-analyzer': '*',
         '@mridang/semantic-release-peer-version': '*',
       });
 
-      const pkgLock = JSON.parse(await readFile(pkgLockPath, 'utf8'));
+      const pkgLock = JSON.parse(
+        await readFile(pkgLockPath, 'utf8'),
+      ) as GeneratedManifest;
       expect(pkgLock.packages).toHaveProperty(
         'node_modules/@semantic-release/commit-analyzer',
       );
