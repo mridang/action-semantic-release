@@ -17,26 +17,26 @@
  * @returns A new async function that will run with the modified environment.
  * @example
  * ```ts
- * const readToken = withEnvVars({ GITHUB_TOKEN: 'fake-token' }, async () => {
+ * const readToken = withEnvVariables({ GITHUB_TOKEN: 'fake-token' }, async () => {
  *   return process.env.GITHUB_TOKEN;
  * });
  * await readToken(); // 'fake-token', and the original value is restored after
  * ```
  */
-export function withEnvVars<T>(
+export function withEnvVariables<T>(
   env: Record<string, string | null>,
   fn: () => Promise<T>,
 ): () => Promise<T> {
   return async () => {
     const originalValues: Record<string, string | undefined> = {};
 
-    for (const [key, newValue] of Object.entries(env)) {
+    for (const [key, nextValue] of Object.entries(env)) {
       originalValues[key] = process.env[key];
 
-      if (newValue === null) {
+      if (nextValue === null) {
         delete process.env[key];
       } else {
-        process.env[key] = newValue;
+        process.env[key] = nextValue;
       }
     }
 

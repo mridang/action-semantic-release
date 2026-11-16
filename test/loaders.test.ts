@@ -5,6 +5,7 @@
 import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
+// eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
 import { cosmiconfig } from 'cosmiconfig';
 import { createLoaders } from '../src/loaders.js';
 import { stringify as toYaml } from 'yaml';
@@ -16,12 +17,12 @@ import { stringify as toYaml } from 'yaml';
  * @returns A function that runs `fn` inside the temporary directory.
  * @example
  * ```ts
- * await withTempDir(async ({ tmp }) => {
+ * await withTemporaryDir(async ({ tmp }) => {
  *   await writeFile(path.join(tmp, '.releaserc.json'), '{}');
  * })();
  * ```
  */
-function withTempDir(fn: (ctx: { tmp: string }) => void | Promise<void>) {
+function withTemporaryDir(fn: (ctx: { tmp: string }) => void | Promise<void>) {
   return async () => {
     const tmp = await mkdtemp(path.join(tmpdir(), 'test-'));
     try {
@@ -52,7 +53,7 @@ it.each([
 ])(
   'correctly handles %s config with isDeclarative = %s',
   (filename, isDeclarative, contents) =>
-    withTempDir(async ({ tmp }) => {
+    withTemporaryDir(async ({ tmp }) => {
       const filepath = path.join(tmp, filename);
       await writeFile(filepath, contents);
 

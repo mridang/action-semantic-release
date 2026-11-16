@@ -24,14 +24,14 @@ import path from 'node:path';
  * temporary directory and run the provided function.
  * @example
  * ```ts
- * await withTempDir(async ({ tmp }) => {
+ * await withTemporaryDir(async ({ tmp }) => {
  *   await writeFile(path.join(tmp, 'notes.txt'), 'hello');
  * })();
  * ```
  */
-export function withTempDir<T extends (ctx: { tmp: string }) => Promise<void>>(
-  fn: T,
-) {
+export function withTemporaryDir<
+  T extends (ctx: { tmp: string }) => Promise<void>,
+>(fn: T) {
   return async () => {
     const tmp = await mkdtemp(path.join(tmpdir(), 'test-'));
     await fn({ tmp });

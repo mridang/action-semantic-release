@@ -14,9 +14,9 @@ import {
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { run, type SshCommandRunner } from '../src/index.js';
-import { withTempDir } from './helpers/with-temp-dir.js';
+import { withTemporaryDir } from './helpers/with-temporary-dir.js';
 import { withGitRepo } from './helpers/with-git-repo.js';
-import { withEnvVars } from './helpers/with-env-vars.js';
+import { withEnvVariables } from './helpers/with-env-variables.js';
 import forge from 'node-forge';
 
 /**
@@ -57,7 +57,7 @@ async function runAction(
   const eventPath = path.join(eventDir, 'event.json');
   await writeFile(eventPath, JSON.stringify({}));
 
-  const wrapped = withEnvVars(
+  const wrapped = withEnvVariables(
     {
       ...extraEnv,
       ...Object.fromEntries(
@@ -104,7 +104,7 @@ const matrix = [
 test.each(matrix)(
   'runs semantic-release for event "$eventName" with ref "$ref" and wait="$wait" (shouldRun: $shouldRun)',
   ({ eventName, ref, wait, shouldRun }) => {
-    return withTempDir(
+    return withTemporaryDir(
       withGitRepo(
         [
           'chore: init',
@@ -158,7 +158,7 @@ test.each(matrix)(
 );
 
 test('configures SSH deploy key when provided', () => {
-  return withTempDir(
+  return withTemporaryDir(
     withGitRepo(
       ['chore: init', 'feat: some feature'],
       async ({ tmp, remoteUrl }) => {

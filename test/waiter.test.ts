@@ -95,7 +95,9 @@ describe('waitForAllChecks', () => {
   });
 
   it('fails on a failed check beyond the first 30 runs', async () => {
-    const runs = Array.from({ length: 40 }, (_, i) => check(`job-${i}`, 1));
+    const runs = Array.from({ length: 40 }, (_, index) =>
+      check(`job-${index}`, 1),
+    );
     runs[35] = check('late-job', 1, 'failure');
     givenChecks(check('release', 1, null), ...runs);
 

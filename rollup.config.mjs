@@ -10,10 +10,10 @@ import { readFile } from 'node:fs/promises';
 import { builtinModules } from 'node:module';
 import typescript from '@rollup/plugin-typescript';
 
-const NODE_BUILTINS = builtinModules.reduce(
-  (acc, name) => [...acc, name, `node:${name}`],
-  [],
-);
+const NODE_BUILTINS = builtinModules.flatMap((name) => [name, `node:${name}`]);
+
+/** Matches the node_modules directory in a module path. */
+const NODE_MODULES_PATTERN = /node_modules/;
 
 /**
  * Rollup plugin that inlines the package.json files that dependencies require. It is a class so that the
@@ -30,7 +30,7 @@ class InlinePackageJsonPlugin {
     const requirePattern =
       /require\((['"`])([-./\w]+?(?:package\.json|commitlint\.schema\.json))\1\)/g;
 
-    let newCode = '';
+    let rewrittenCode = '';
     let lastIndex = 0;
     for (const found of code.matchAll(requirePattern)) {
       const [match, , requiredPath] = found;
@@ -43,13 +43,13 @@ class InlinePackageJsonPlugin {
           `Failed to inline '${requiredPath}' for ${id}: ${error.message}`,
         );
       }
-      newCode += code.slice(lastIndex, found.index) + replacement;
+      rewrittenCode += code.slice(lastIndex, found.index) + replacement;
       lastIndex = found.index + match.length;
     }
-    newCode += code.slice(lastIndex);
+    rewrittenCode += code.slice(lastIndex);
 
     return {
-      code: newCode,
+      code: rewrittenCode,
       map: null,
     };
   }
@@ -108,7 +108,7 @@ function createRollupConfig(configOverrides = {}) {
         preferBuiltins: true,
       }),
       commonjs({
-        include: /node_modules/,
+        include: NODE_MODULES_PATTERN,
         requireReturnsDefault: () => {
           return 'auto';
         },
