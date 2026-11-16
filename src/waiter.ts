@@ -58,7 +58,7 @@ async function findExcludedSuites(
     }
   } catch (error) {
     warning(
-      `Could not list workflow runs (needs actions: read on private repositories), so checks from non-push runs are not excluded: ${error instanceof Error ? error.message : String(error)}`,
+      `Could not list workflow runs (needs actions: read on private repositories), so checks from non-push runs are not excluded: ${String(error)}`,
     );
   }
   return excludedSuites;
