@@ -12,7 +12,9 @@ import {
   debug as logDebug,
   error as logError,
 } from '@actions/core';
+// eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
 import type { Loader } from 'cosmiconfig';
+// eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
 import { defaultLoaders } from 'cosmiconfig';
 
 /**
@@ -211,17 +213,17 @@ function imperativeLoader(loader: Loader, allowForce: boolean): Loader {
  */
 export function createLoaders(allowForce = false) {
   const dLoader = (loader: Loader) => declarativeLoader(loader);
-  const iLoader = (loader: Loader) => imperativeLoader(loader, allowForce);
+  const toImperative = (loader: Loader) => imperativeLoader(loader, allowForce);
 
   return {
     ...defaultLoaders,
-    '.json': iLoader(dLoader(defaultLoaders['.json'])),
-    '.yaml': iLoader(dLoader(defaultLoaders['.yaml'])),
-    '.yml': iLoader(dLoader(defaultLoaders['.yml'])),
-    noExt: iLoader(dLoader(defaultLoaders['.yaml'])),
-    '.js': iLoader(defaultLoaders['.js']),
-    '.cjs': iLoader(defaultLoaders['.cjs']),
-    '.mjs': iLoader(defaultLoaders['.mjs']),
-    '.ts': iLoader(defaultLoaders['.ts']),
+    '.json': toImperative(dLoader(defaultLoaders['.json'])),
+    '.yaml': toImperative(dLoader(defaultLoaders['.yaml'])),
+    '.yml': toImperative(dLoader(defaultLoaders['.yml'])),
+    noExt: toImperative(dLoader(defaultLoaders['.yaml'])),
+    '.js': toImperative(defaultLoaders['.js']),
+    '.cjs': toImperative(defaultLoaders['.cjs']),
+    '.mjs': toImperative(defaultLoaders['.mjs']),
+    '.ts': toImperative(defaultLoaders['.ts']),
   };
 }

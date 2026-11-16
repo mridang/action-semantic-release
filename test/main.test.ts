@@ -4,13 +4,14 @@
  */
 import { copyFile, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { withTempDir } from './helpers/with-temp-dir.js';
+import { withTemporaryDir } from './helpers/with-temporary-dir.js';
 import { withGitRepo } from './helpers/with-git-repo.js';
-import { withEnvVars } from './helpers/with-env-vars.js';
+import { withEnvVariables } from './helpers/with-env-variables.js';
 import { tmpdir } from 'node:os';
 import { rollup } from 'rollup';
 import { createRequire } from 'node:module';
 import vm, { constants as VM } from 'node:vm';
+// eslint-disable-next-line e18e/ban-dependencies -- the test signs its fixture token with jsonwebtoken synchronous sign, which jose does not offer as a drop-in
 import jwt from 'jsonwebtoken';
 import createRollupConfig from '../rollup.config.mjs';
 
@@ -35,12 +36,12 @@ export async function bundleToPath(): Promise<string> {
   });
 
   const bundle = await rollup(testConfig);
-  const tempDir = await mkdtemp(path.join(tmpdir(), 'test-bundle-'));
-  const outputFile = path.join(tempDir, `bundle-${Date.now()}.cjs`);
+  const temporaryDir = await mkdtemp(path.join(tmpdir(), 'test-bundle-'));
+  const outputFile = path.join(temporaryDir, `bundle-${Date.now()}.cjs`);
 
   await copyFile(
     path.join(process.cwd(), 'tsconfig.json'),
-    path.join(tempDir, 'tsconfig.json'),
+    path.join(temporaryDir, 'tsconfig.json'),
   );
   try {
     await bundle.write({ ...testConfig.output, file: outputFile });
@@ -108,7 +109,7 @@ async function runAction(
     ACTIONS_RESULTS_URL: 'https://results.local:8080',
   };
 
-  const wrappedRun = withEnvVars(env, async () => {
+  const wrappedRun = withEnvVariables(env, async () => {
     const actionScript = await bundleToPath();
     const script = await readFile(actionScript, 'utf8');
     const context = {
@@ -169,7 +170,7 @@ const matrix = [
 test.each(matrix)(
   'runs semantic-release for event "$eventName" with ref "$ref" and wait="$wait" (shouldRun: $shouldRun)',
   ({ eventName, ref }) => {
-    return withTempDir(
+    return withTemporaryDir(
       withGitRepo(
         [
           'chore: init',
