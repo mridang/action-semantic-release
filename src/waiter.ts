@@ -2,9 +2,9 @@
  * @file Waits for the other GitHub check runs on the current commit to finish
  * successfully before the release is allowed to proceed.
  */
-import type { context } from '@actions/github';
 import { getOctokit } from '@actions/github';
-import { debug as logDebug, info, warning } from '@actions/core';
+import { debug, info, warning } from '@actions/core';
+import type { context } from '@actions/github';
 
 const CHECK_TIMEOUT_MS = 20 * 60 * 1000;
 const CHECK_INTERVAL_MS = 2 * 1000;
@@ -45,23 +45,24 @@ async function findExcludedSuites(
   ref: string,
   allowedEvents: Set<string>,
 ): Promise<Set<number>> {
-  const excludedSuites = new Set<number>();
   try {
     const workflowRuns = await octokit.paginate(
       octokit.rest.actions.listWorkflowRunsForRepo,
       { owner, repo, head_sha: ref, per_page: 100 },
     );
-    for (const run of workflowRuns) {
-      if (!allowedEvents.has(run.event) && run.check_suite_id !== undefined) {
-        excludedSuites.add(run.check_suite_id);
-      }
-    }
+    return new Set(
+      workflowRuns.flatMap((run) =>
+        !allowedEvents.has(run.event) && run.check_suite_id !== undefined
+          ? [run.check_suite_id]
+          : [],
+      ),
+    );
   } catch (error) {
     warning(
       `Could not list workflow runs (needs actions: read on private repositories), so checks from non-push runs are not excluded: ${String(error)}`,
     );
+    return new Set<number>();
   }
-  return excludedSuites;
 }
 
 /**
@@ -90,10 +91,11 @@ export default async function waitForAllChecks(
   const deadline = Date.now() + CHECK_TIMEOUT_MS;
 
   info(`Starting check run monitoring for ref ${ref}`);
-  logDebug(`Identifying self as job ID: '${selfIdentifier}'`);
+  debug(`Identifying self as job ID: '${selfIdentifier}'`);
 
   const allowedEvents = new Set(['push', ghCtx.eventName]);
 
+  // eslint-disable-next-line functional/no-loop-statements -- polls the check runs until they settle or the deadline passes, waiting between rounds
   while (Date.now() < deadline) {
     const checkRuns = await octokit.paginate(octokit.rest.checks.listForRef, {
       owner,
@@ -150,12 +152,11 @@ export default async function waitForAllChecks(
       if (allSuccessful) {
         info('All other check runs have completed successfully.');
         return;
-      } else {
-        const failedCheck = otherRuns.find((run) => !isPassing(run.conclusion));
-        throw new Error(
-          `Check '${failedCheck?.name}' failed with conclusion: ${failedCheck?.conclusion}.`,
-        );
       }
+      const failedCheck = otherRuns.find((run) => !isPassing(run.conclusion));
+      throw new Error(
+        `Check '${failedCheck?.name}' failed with conclusion: ${failedCheck?.conclusion}.`,
+      );
     } else {
       const pendingCheckNames = pendingOtherRuns
         .map((run) => run.name)
@@ -163,7 +164,9 @@ export default async function waitForAllChecks(
       info(`Waiting for checks to complete: ${pendingCheckNames}`);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, CHECK_INTERVAL_MS));
+    await new Promise((resolve) => {
+      setTimeout(resolve, CHECK_INTERVAL_MS);
+    });
   }
 
   throw new Error('Timed out waiting for check runs to complete.');

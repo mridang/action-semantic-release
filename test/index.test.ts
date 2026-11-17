@@ -2,7 +2,6 @@
  * @file Integration tests for the action entrypoint that run `run` against a
  * real local Git repository and check the outcome for each event type.
  */
-import { expect, test } from '@jest/globals';
 import {
   access,
   appendFile,
@@ -13,11 +12,13 @@ import {
 } from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
-import { run, type SshCommandRunner } from '../src/index.js';
+import { expect, test } from '@jest/globals';
+import forge from 'node-forge';
+import { run } from '../src/index.js';
 import { withTemporaryDir } from './helpers/with-temporary-dir.js';
 import { withGitRepo } from './helpers/with-git-repo.js';
 import { withEnvVariables } from './helpers/with-env-variables.js';
-import forge from 'node-forge';
+import type { SshCommandRunner } from '../src/index.js';
 
 /**
  * A test helper to execute the main action script (`run`) within a
@@ -103,8 +104,8 @@ const matrix = [
 
 test.each(matrix)(
   'runs semantic-release for event "$eventName" with ref "$ref" and wait="$wait" (shouldRun: $shouldRun)',
-  async ({ eventName, ref, wait, shouldRun }) => {
-    return withTemporaryDir(
+  async ({ eventName, ref, wait, shouldRun }) =>
+    withTemporaryDir(
       withGitRepo(
         [
           'chore: init',
@@ -153,12 +154,11 @@ test.each(matrix)(
           }
         },
       ),
-    )();
-  },
+    )(),
 );
 
-test('configures SSH deploy key when provided', async () => {
-  return withTemporaryDir(
+test('configures SSH deploy key when provided', async () =>
+  withTemporaryDir(
     withGitRepo(
       ['chore: init', 'feat: some feature'],
       async ({ tmp, remoteUrl }) => {
@@ -227,7 +227,7 @@ test('configures SSH deploy key when provided', async () => {
         await expect(access(knownHostsPath)).resolves.toBeUndefined();
 
         const stats = await stat(keyPath);
-        expect(stats.mode & 0o777).toBe(0o600);
+        expect(stats.mode % 0o1000).toBe(0o600);
 
         expect(
           commands.some((c) => c.startsWith('ssh-keyscan github.com')),
@@ -238,5 +238,4 @@ test('configures SSH deploy key when provided', async () => {
         );
       },
     ),
-  )();
-});
+  )());

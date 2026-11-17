@@ -3,6 +3,16 @@
  * loads the semantic-release configuration and runs the release.
  */
 // noinspection ExceptionCaughtLocallyJS
+
+import { mkdir, writeFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+import path from 'node:path';
+import { context } from '@actions/github';
+import semanticRelease from 'semantic-release';
+// eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
+import { cosmiconfig } from 'cosmiconfig';
 import {
   getInput,
   setFailed as actionFailed,
@@ -12,18 +22,11 @@ import {
   summary,
   warning,
 } from '@actions/core';
-// eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
-import { cosmiconfig, type CosmiconfigResult } from 'cosmiconfig';
-import type { Options, Result } from 'semantic-release';
-import semanticRelease from 'semantic-release';
-import { createLoaders } from './loaders.js';
-import { context } from '@actions/github';
 import waitForAllChecks from './waiter.js';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { homedir } from 'node:os';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
-import path from 'node:path';
+import { createLoaders } from './loaders.js';
+// eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
+import type { CosmiconfigResult } from 'cosmiconfig';
+import type { Options, Result } from 'semantic-release';
 
 const execAsync = promisify(exec);
 
@@ -40,9 +43,8 @@ function getGithubToken(): string {
   const token = getInput('github-token', { required: true }).trim();
   if (token) {
     return token;
-  } else {
-    throw new Error('The "github-token" input must not be empty.');
   }
+  throw new Error('The "github-token" input must not be empty.');
 }
 
 /**
@@ -72,13 +74,13 @@ function getWaitForChecks(): boolean {
   const raw = getInput('wait-for-checks').trim().toLowerCase();
   if (raw === 'false') {
     return false;
-  } else if (raw === 'true' || raw === '') {
-    return true;
-  } else {
-    throw new Error(
-      'Invalid value for "wait-for-checks". Use "true" or "false".',
-    );
   }
+  if (raw === 'true' || raw === '') {
+    return true;
+  }
+  throw new Error(
+    'Invalid value for "wait-for-checks". Use "true" or "false".',
+  );
 }
 
 /**
@@ -94,13 +96,13 @@ function getAllowForceInstall(): boolean {
   const raw = getInput('allow-force-install').trim().toLowerCase();
   if (raw === 'true') {
     return true;
-  } else if (raw === 'false' || raw === '') {
-    return false;
-  } else {
-    throw new Error(
-      'Invalid value for "allow-force-install". Use "true" or "false".',
-    );
   }
+  if (raw === 'false' || raw === '') {
+    return false;
+  }
+  throw new Error(
+    'Invalid value for "allow-force-install". Use "true" or "false".',
+  );
 }
 
 /**
@@ -161,7 +163,7 @@ export async function setupSshKey(
   const socketPath = path.join(sshDir, 'ssh_agent.sock');
 
   await mkdir(sshDir, { recursive: true, mode: 0o700 });
-  await writeFile(keyPath, deployKey + '\n', { mode: 0o600 });
+  await writeFile(keyPath, `${deployKey}\n`, { mode: 0o600 });
 
   try {
     await runCommand(
@@ -171,11 +173,15 @@ export async function setupSshKey(
     if (error instanceof Error) {
       throw new Error(
         `Failed to add github.com to known_hosts: ${error.message}`,
+        { cause: error },
       );
     }
-    throw new Error('Failed to add github.com to known_hosts');
+    throw new Error('Failed to add github.com to known_hosts', {
+      cause: error,
+    });
   }
 
+  // eslint-disable-next-line functional/immutable-data, require-atomic-updates -- later steps and the release run reuse the agent through SSH_AUTH_SOCK in the process environment
   process.env.SSH_AUTH_SOCK = socketPath;
 
   try {
@@ -186,9 +192,11 @@ export async function setupSshKey(
     info('SSH deploy key configured successfully');
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Failed to set up SSH agent: ${error.message}`);
+      throw new Error(`Failed to set up SSH agent: ${error.message}`, {
+        cause: error,
+      });
     }
-    throw new Error('Failed to set up SSH agent');
+    throw new Error('Failed to set up SSH agent', { cause: error });
   }
 }
 
@@ -239,7 +247,7 @@ function isBranchOrTagPush(ghCtx: typeof context): boolean {
  * const config = requireConfig(await explorer.search(workingDirectory));
  * ```
  */
-function requireConfig(result: CosmiconfigResult): unknown {
+function requireConfig(result: CosmiconfigResult): Options {
   if (result === null) {
     throw new Error('No configuration file found.');
   }
@@ -253,7 +261,7 @@ function requireConfig(result: CosmiconfigResult): unknown {
   if (result.isEmpty) {
     throw new Error(`Configuration file "${result.filepath}" is empty.`);
   }
-  return result.config;
+  return result.config as Options;
 }
 
 /**
@@ -302,19 +310,16 @@ async function executeAction(
   }
 
   startGroup('Running semantic-release');
-  const releaseResult: Result | false = await semanticRelease(
-    config as Options,
-    {
-      cwd: workingDirectory,
-      env: {
-        ...process.env,
-        GITHUB_TOKEN: githubToken,
-        ...(process.env.SSH_AUTH_SOCK !== undefined && {
-          SSH_AUTH_SOCK: process.env.SSH_AUTH_SOCK,
-        }),
-      },
+  const releaseResult: Result | false = await semanticRelease(config, {
+    cwd: workingDirectory,
+    env: {
+      ...process.env,
+      GITHUB_TOKEN: githubToken,
+      ...(process.env.SSH_AUTH_SOCK !== undefined && {
+        SSH_AUTH_SOCK: process.env.SSH_AUTH_SOCK,
+      }),
     },
-  );
+  });
   endGroup();
 
   if (!releaseResult) {
