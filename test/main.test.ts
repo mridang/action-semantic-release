@@ -28,16 +28,16 @@ import { withTemporaryDir } from './helpers/with-temporary-dir.js';
  * ```
  */
 export async function bundleToPath(): Promise<string> {
+  const temporaryDir = await mkdtemp(path.join(tmpdir(), 'test-bundle-'));
   const testConfig = createRollupConfig({
     typescript: {
-      outDir: null,
+      outDir: temporaryDir,
       declaration: false,
       sourceMap: true,
     },
   });
 
   const bundle = await rollup(testConfig);
-  const temporaryDir = await mkdtemp(path.join(tmpdir(), 'test-bundle-'));
   const outputFile = path.join(temporaryDir, `bundle-${Date.now()}.cjs`);
 
   await copyFile(
