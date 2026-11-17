@@ -31,6 +31,35 @@ import type { Options, Result } from 'semantic-release';
 const execAsync = promisify(exec);
 
 /**
+ * Tells whether a value is an instance of the GitHub context class.
+ * @param value - The value to check.
+ * @returns True when the value was built by the context class.
+ * @example
+ * ```ts
+ * isContext(context); // true
+ * ```
+ */
+function isContext(value: unknown): value is typeof context {
+  return value instanceof context.constructor;
+}
+
+/**
+ * Builds a fresh GitHub context, which re-reads the workflow environment.
+ * @returns A new context.
+ * @example
+ * ```ts
+ * const fresh = createContext();
+ * ```
+ */
+function createContext(): typeof context {
+  const created: unknown = Reflect.construct(context.constructor, []);
+  if (!isContext(created)) {
+    throw new TypeError('Could not create the GitHub context.');
+  }
+  return created;
+}
+
+/**
  * Retrieves the GitHub token from the action's 'github-token' input.
  * @returns The GitHub token.
  * @throws {Error} If the 'github-token' input is empty.
@@ -251,17 +280,14 @@ function requireConfig(result: CosmiconfigResult): Options {
   if (result === null) {
     throw new Error('No configuration file found.');
   }
-  if (
-    typeof result.config !== 'object' ||
-    result.config === null ||
-    !result.filepath
-  ) {
+  const config: unknown = result.config;
+  if (typeof config !== 'object' || config === null || !result.filepath) {
     throw new Error('Invalid semantic-release configuration.');
   }
   if (result.isEmpty) {
     throw new Error(`Configuration file "${result.filepath}" is empty.`);
   }
-  return result.config as Options;
+  return config;
 }
 
 /**
@@ -349,7 +375,7 @@ async function executeAction(
  */
 export async function run(
   waiterFn?: () => Promise<void>,
-  ghCtx = new (context.constructor as new () => typeof context)(),
+  ghCtx = createContext(),
   sshCommandRunner: SshCommandRunner = defaultSshCommandRunner,
 ): Promise<string | void> {
   try {

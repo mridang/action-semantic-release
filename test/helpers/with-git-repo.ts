@@ -6,7 +6,6 @@ import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { simpleGit } from 'simple-git';
 import { Git } from 'node-git-server';
-import type { AddressInfo, Server } from 'node:net';
 import type { SimpleGit } from 'simple-git';
 import type { FetchData, PushData } from 'node-git-server';
 
@@ -45,9 +44,12 @@ export function withGitRepo(
     try {
       const port = await new Promise<number>((resolve, reject) => {
         server.listen(0, undefined, () => {
-          const internalHttpServer = server.server as Server;
-          const port = (internalHttpServer.address() as AddressInfo).port;
-          resolve(port);
+          const address = server.server?.address();
+          if (!address || typeof address === 'string') {
+            reject(new Error('The git server did not report a TCP port.'));
+            return;
+          }
+          resolve(address.port);
         });
         server.on('error', reject);
       });
