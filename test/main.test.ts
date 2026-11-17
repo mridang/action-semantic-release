@@ -2,19 +2,19 @@
  * @file End-to-end tests that bundle the action with Rollup, run the bundle in
  * a VM context and exercise it against a local Git repository.
  */
-import { test } from '@jest/globals';
 import { copyFile, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { withTemporaryDir } from './helpers/with-temporary-dir.js';
-import { withGitRepo } from './helpers/with-git-repo.js';
-import { withEnvVariables } from './helpers/with-env-variables.js';
 import { tmpdir } from 'node:os';
-import { rollup } from 'rollup';
 import { createRequire } from 'node:module';
-import vm, { constants as VM } from 'node:vm';
+import vm, { constants } from 'node:vm';
+import { rollup } from 'rollup';
+import { test } from '@jest/globals';
 // eslint-disable-next-line e18e/ban-dependencies -- the test signs its fixture token with jsonwebtoken synchronous sign, which jose does not offer as a drop-in
 import jwt from 'jsonwebtoken';
 import createRollupConfig from '../rollup.config.mjs';
+import { withEnvVariables } from './helpers/with-env-variables.js';
+import { withGitRepo } from './helpers/with-git-repo.js';
+import { withTemporaryDir } from './helpers/with-temporary-dir.js';
 
 /**
  * Bundle the project using the local rollup.config.mjs and write the output
@@ -129,7 +129,7 @@ async function runAction(
     // eslint-disable-next-line sonarjs/code-eval -- the test must evaluate the freshly built bundle in an isolated VM context with custom globals; vm.runInContext, new vm.Script and vm.compileFunction all trip this rule, and a child process would lose the injected globals and the bundle's completion value
     const result = vm.runInContext(script, context, {
       filename: actionScript,
-      importModuleDynamically: VM.USE_MAIN_CONTEXT_DEFAULT_LOADER,
+      importModuleDynamically: constants.USE_MAIN_CONTEXT_DEFAULT_LOADER,
     }) as unknown;
 
     await result;
@@ -170,8 +170,8 @@ const matrix = [
 
 test.each(matrix)(
   'runs semantic-release for event "$eventName" with ref "$ref" and wait="$wait" (shouldRun: $shouldRun)',
-  async ({ eventName, ref }) => {
-    return withTemporaryDir(
+  async ({ eventName, ref }) =>
+    withTemporaryDir(
       withGitRepo(
         [
           'chore: init',
@@ -208,6 +208,5 @@ test.each(matrix)(
           );
         },
       ),
-    )();
-  },
+    )(),
 );

@@ -2,18 +2,18 @@
  * @file Rollup configuration that bundles the action entrypoint into a single
  * CommonJS file, inlining the package.json files that dependencies require.
  */
-import json from '@rollup/plugin-json';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { builtinModules } from 'node:module';
+import json from '@rollup/plugin-json';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
 
 const NODE_BUILTINS = builtinModules.flatMap((name) => [name, `node:${name}`]);
 
 /** Matches the node_modules directory in a module path. */
-const NODE_MODULES_PATTERN = /node_modules/;
+const NODE_MODULES_PATTERN = /node_modules/u;
 
 /**
  * Rollup plugin that inlines the package.json files that dependencies require. It is a class so that the
@@ -28,25 +28,31 @@ class InlinePackageJsonPlugin {
     }
 
     const requirePattern =
-      /require\((['"`])([-./\w]+?(?:package\.json|commitlint\.schema\.json))\1\)/g;
+      /require\((['"`])([-./\w]+?(?:package\.json|commitlint\.schema\.json))\1\)/gu;
 
-    let rewrittenCode = '';
-    let lastIndex = 0;
-    for (const found of code.matchAll(requirePattern)) {
-      const [match, , requiredPath] = found;
-      let replacement = match;
-      try {
-        const filePath = path.resolve(path.dirname(id), requiredPath);
-        replacement = await readFile(filePath, 'utf8');
-      } catch (error) {
-        this.warn(
-          `Failed to inline '${requiredPath}' for ${id}: ${error.message}`,
-        );
-      }
-      rewrittenCode += code.slice(lastIndex, found.index) + replacement;
-      lastIndex = found.index + match.length;
-    }
-    rewrittenCode += code.slice(lastIndex);
+    const matches = [...code.matchAll(requirePattern)];
+    const replacements = await Promise.all(
+      matches.map(async ([match, , requiredPath]) => {
+        try {
+          const filePath = path.resolve(path.dirname(id), requiredPath);
+          return await readFile(filePath, 'utf8');
+        } catch (error) {
+          this.warn(
+            `Failed to inline '${requiredPath}' for ${id}: ${error.message}`,
+          );
+          return match;
+        }
+      }),
+    );
+    const segmentStart = (index) =>
+      index === 0 ? 0 : matches[index - 1].index + matches[index - 1][0].length;
+    const rewrittenCode =
+      matches
+        .map(
+          (found, index) =>
+            code.slice(segmentStart(index), found.index) + replacements[index],
+        )
+        .join('') + code.slice(segmentStart(matches.length));
 
     return {
       code: rewrittenCode,
@@ -109,9 +115,7 @@ function createRollupConfig(configOverrides = {}) {
       }),
       commonjs({
         include: NODE_MODULES_PATTERN,
-        requireReturnsDefault: () => {
-          return 'auto';
-        },
+        requireReturnsDefault: () => 'auto',
         ignore: NODE_BUILTINS,
       }),
       typescript({

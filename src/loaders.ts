@@ -5,17 +5,11 @@
 import { access, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import {
-  startGroup,
-  endGroup,
-  info,
-  debug as logDebug,
-  error as logError,
-} from '@actions/core';
-// eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
-import type { Loader } from 'cosmiconfig';
+import { startGroup, endGroup, info, debug, error } from '@actions/core';
 // eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
 import { defaultLoaders } from 'cosmiconfig';
+// eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
+import type { Loader } from 'cosmiconfig';
 
 /**
  * Checks whether anything exists at the given path.
@@ -55,11 +49,11 @@ function extractPluginNames(config: unknown): string[] {
     .map((entry: unknown) => {
       if (typeof entry === 'string') {
         return entry.trim();
-      } else if (Array.isArray(entry) && typeof entry[0] === 'string') {
-        return entry[0].trim();
-      } else {
-        return null;
       }
+      if (Array.isArray(entry) && typeof entry[0] === 'string') {
+        return entry[0].trim();
+      }
+      return null;
     })
     .filter((p): p is string => !!p);
 }
@@ -95,7 +89,7 @@ async function writePluginPackageJson(
     }),
   );
 
-  logDebug(`Writing temporary package.json to ${pkgPath}`);
+  debug(`Writing temporary package.json to ${pkgPath}`);
   await writeFile(
     pkgPath,
     JSON.stringify(
@@ -125,7 +119,7 @@ async function writePluginPackageJson(
  */
 function declarativeLoader(loader: Loader): Loader {
   return async (filepath, content) => {
-    logDebug(`Loading declarative config: ${filepath}`);
+    debug(`Loading declarative config: ${filepath}`);
     const config: unknown = await loader(filepath, content);
     const plugins = extractPluginNames(config);
 
@@ -176,7 +170,7 @@ async function runInherited(command: string, cwd: string): Promise<void> {
  */
 function imperativeLoader(loader: Loader, allowForce: boolean): Loader {
   return async (filepath, content) => {
-    logDebug(`Loading imperative config: ${filepath}`);
+    debug(`Loading imperative config: ${filepath}`);
     const config: unknown = await loader(filepath, content);
     const cwd = path.dirname(filepath);
 
@@ -188,12 +182,13 @@ function imperativeLoader(loader: Loader, allowForce: boolean): Loader {
 
       info(`Running command: ${command}`);
       await runInherited(command, cwd);
-    } catch (error) {
-      logError('npm install failed');
-      if (error instanceof Error) {
-        logError(error.message);
+      // eslint-disable-next-line sonarjs/variable-name -- unicorn/catch-error-name requires this name because the catch binding would otherwise shadow the imported core error
+    } catch (error_) {
+      error('npm install failed');
+      if (error_ instanceof Error) {
+        error(error_.message);
       }
-      throw error;
+      throw error_;
     } finally {
       endGroup();
     }

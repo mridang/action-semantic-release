@@ -20,10 +20,16 @@ type WorkflowRun = { event: string; check_suite_id: number };
 
 const listForRef = jest.fn();
 const paginate =
-  jest.fn<(fn: unknown, params: object) => Promise<Check[] | WorkflowRun[]>>();
+  jest.fn<
+    (
+      fn: unknown,
+      params: Record<string, unknown>,
+    ) => Promise<Check[] | WorkflowRun[]>
+  >();
 const listWorkflowRunsForRepo = jest.fn();
 const warning = jest.fn();
 
+// eslint-disable-next-line tslop/no-module-mocking -- waitForAllChecks builds its Octokit client internally from the token, so mocking the module is the only seam to fake the GitHub API
 jest.unstable_mockModule('@actions/github', () => ({
   getOctokit: () => ({
     paginate,
@@ -33,6 +39,7 @@ jest.unstable_mockModule('@actions/github', () => ({
     },
   }),
 }));
+// eslint-disable-next-line tslop/no-module-mocking -- waitForAllChecks logs through @actions/core directly, so the module is the only seam to observe the warnings
 jest.unstable_mockModule('@actions/core', () => ({
   debug: jest.fn(),
   info: jest.fn(),
@@ -71,8 +78,12 @@ let workflowRuns: WorkflowRun[] | Error = [];
 
 const givenChecks = (...runs: Check[]) =>
   paginate.mockImplementation(async (fn) => {
-    if (fn === listForRef) return runs;
-    if (workflowRuns instanceof Error) throw workflowRuns;
+    if (fn === listForRef) {
+      return runs;
+    }
+    if (workflowRuns instanceof Error) {
+      throw workflowRuns;
+    }
     return workflowRuns;
   });
 

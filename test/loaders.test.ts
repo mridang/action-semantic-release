@@ -2,14 +2,14 @@
  * @file Tests that the cosmiconfig loaders write the package.json and lock
  * file needed for declarative and imperative semantic-release configurations.
  */
-import { it, expect } from '@jest/globals';
 import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
+import { it, expect } from '@jest/globals';
 // eslint-disable-next-line e18e/ban-dependencies -- the action is built on cosmiconfig search and loader semantics, and lilconfig is not a drop-in replacement
 import { cosmiconfig } from 'cosmiconfig';
+import { stringify } from 'yaml';
 import { createLoaders } from '../src/loaders.js';
-import { stringify as toYaml } from 'yaml';
 
 /**
  * Runs a test body inside a freshly created temporary directory and removes
@@ -51,9 +51,9 @@ const baseConfig = {
 
 it.each([
   ['.releaserc.json', true, JSON.stringify(baseConfig, null, 2)],
-  ['.releaserc.yaml', true, toYaml(baseConfig)],
-  ['.releaserc.yml', true, toYaml(baseConfig)],
-  ['.releaserc', true, toYaml(baseConfig)],
+  ['.releaserc.yaml', true, stringify(baseConfig)],
+  ['.releaserc.yml', true, stringify(baseConfig)],
+  ['.releaserc', true, stringify(baseConfig)],
   ['release.config.js', false, `module.exports = {};`],
   ['release.config.cjs', false, `module.exports = {};`],
   ['release.config.mjs', false, `export default {};`],
